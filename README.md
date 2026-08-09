@@ -2,6 +2,10 @@
 
 Predictron is a non custodial platform for on chain price prediction rounds and staking, with an advisory AI signal layer. Every fund moving action, staking, unstaking, claiming a reward, placing a bet, or claiming a payout, is a transaction signed by the user's own wallet.
 
+<div align="center">
+  <img src="docs/images/homepage.bmp" alt="AlphaForge HomePage" width="80%">
+</div>
+
 ## Project structure
 
 | Path                 | Description                                                                                                     |
