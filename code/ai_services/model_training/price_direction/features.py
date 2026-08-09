@@ -6,6 +6,7 @@ stationary, scale-independent features — raw price levels are deliberately
 excluded so the model generalizes across price regimes instead of
 memorizing "BNB was around $600 in this training set."
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -32,9 +33,13 @@ def compute_features(candles: pd.DataFrame) -> pd.DataFrame:
     df["rolling_vol_12"] = df["log_return_1"].rolling(12).std()
 
     df["hl_range"] = (df["high"] - df["low"]) / df["close"]
-    df["body_ratio"] = (df["close"] - df["open"]).abs() / (df["high"] - df["low"]).replace(0, np.nan)
+    df["body_ratio"] = (df["close"] - df["open"]).abs() / (
+        df["high"] - df["low"]
+    ).replace(0, np.nan)
 
-    df["volume_z"] = (df["volume"] - df["volume"].rolling(20).mean()) / df["volume"].rolling(20).std()
+    df["volume_z"] = (df["volume"] - df["volume"].rolling(20).mean()) / df[
+        "volume"
+    ].rolling(20).std()
 
     # Simple momentum: fraction of the last 10 candles that closed green
     df["up_candle"] = (df["close"] > df["open"]).astype(int)

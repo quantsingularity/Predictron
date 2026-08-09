@@ -1,7 +1,6 @@
-from fastapi.testclient import TestClient
-
-from main import app
 import routers.price_direction as price_direction_module
+from fastapi.testclient import TestClient
+from main import app
 
 client = TestClient(app)
 
@@ -36,7 +35,9 @@ def test_returns_503_when_no_model_artifact_is_present(monkeypatch):
 
 
 def test_rejects_fewer_than_twenty_candles():
-    response = client.post("/predict/price-direction", json={"candles": make_candles(5)})
+    response = client.post(
+        "/predict/price-direction", json={"candles": make_candles(5)}
+    )
     assert response.status_code == 422
 
 

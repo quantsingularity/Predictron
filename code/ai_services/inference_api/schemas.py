@@ -16,7 +16,9 @@ class PriceDirectionRequest(BaseModel):
     # Caller supplies the recent candle window — this service holds no
     # exchange API keys and fetches no market data itself, keeping it a
     # pure, stateless function of its input.
-    candles: list[Candle] = Field(..., min_length=20, description="Most recent candles, ascending by time")
+    candles: list[Candle] = Field(
+        ..., min_length=20, description="Most recent candles, ascending by time"
+    )
 
 
 class PriceDirectionResponse(BaseModel):

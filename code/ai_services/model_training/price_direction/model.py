@@ -8,6 +8,7 @@ an advisory probability next to the real settlement price — a model whose
 probabilities are actually well-calibrated matters more than a marginal
 accuracy gain from a heavier architecture.
 """
+
 from __future__ import annotations
 
 import json
@@ -17,11 +18,10 @@ from pathlib import Path
 import joblib
 import numpy as np
 import pandas as pd
+from features import FEATURE_COLUMNS, compute_features
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import TimeSeriesSplit
-
-from features import FEATURE_COLUMNS, compute_features
 
 MODEL_VERSION = "price_direction_v1"
 

@@ -113,7 +113,13 @@ export async function indexStakingVault(): Promise<void> {
           data: {
             status: "UNSTAKED",
             unstakeTxHash: log.transactionHash,
-            rewardPaid: rewardPaid?.toString(),
+            // Under exactOptionalPropertyTypes, an explicitly-present key
+            // with value `undefined` is a different (rejected) type from
+            // the key being absent — so this field is only included in
+            // the update at all when the event actually carried a value.
+            ...(rewardPaid !== undefined
+              ? { rewardPaid: rewardPaid.toString() }
+              : {}),
           },
         });
       }
@@ -204,7 +210,7 @@ export async function indexPredictionGame(): Promise<void> {
           where: { id: existing.id },
           data: {
             claimTxHash: log.transactionHash,
-            payout: amount?.toString(),
+            ...(amount !== undefined ? { payout: amount.toString() } : {}),
           },
         });
       }

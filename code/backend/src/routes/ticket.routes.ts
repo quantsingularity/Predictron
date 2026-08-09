@@ -47,9 +47,9 @@ const ReplySchema = z.object({ message: z.string().min(1).max(5000) });
 ticketRouter.post("/:id/messages", requireAuth, async (req, res, next) => {
   try {
     const { message } = ReplySchema.parse(req.body);
-    const ticket = await prisma.ticket.findUnique({
-      where: { id: req.params.id },
-    });
+    const ticketId = req.params.id;
+    if (!ticketId) throw new HttpError(400, "Missing ticket id");
+    const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
     if (!ticket) throw new HttpError(404, "Ticket not found");
     if (ticket.userId !== req.user!.id && req.user!.role !== "ADMIN") {
       throw new HttpError(403, "Not your ticket");

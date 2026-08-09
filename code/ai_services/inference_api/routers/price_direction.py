@@ -3,13 +3,14 @@ from pathlib import Path
 
 import pandas as pd
 from fastapi import APIRouter, HTTPException
-
 from schemas import PriceDirectionRequest, PriceDirectionResponse
 
 # The model class lives in ../model_training/price_direction — import it
 # directly rather than duplicating the feature/model code here, so
 # training and serving always agree on exactly one implementation.
-MODEL_TRAINING_DIR = Path(__file__).resolve().parents[2] / "model_training" / "price_direction"
+MODEL_TRAINING_DIR = (
+    Path(__file__).resolve().parents[2] / "model_training" / "price_direction"
+)
 sys.path.insert(0, str(MODEL_TRAINING_DIR))
 from model import PriceDirectionModel  # noqa: E402
 
@@ -38,9 +39,16 @@ def predict_price_direction(request: PriceDirectionRequest) -> PriceDirectionRes
         # fresh deployment — the backend treats a non-200 here as "no
         # signal available" and simply hides the AI badge, never as an
         # error condition that affects round settlement.
-        raise HTTPException(status_code=503, detail="Model artifact not available yet — run model_training/price_direction/train.py")
+        raise HTTPException(
+            status_code=503,
+            detail="Model artifact not available yet — run model_training/price_direction/train.py",
+        )
 
-    df = pd.DataFrame([c.model_dump() for c in request.candles]).set_index("timestamp").sort_index()
+    df = (
+        pd.DataFrame([c.model_dump() for c in request.candles])
+        .set_index("timestamp")
+        .sort_index()
+    )
     try:
         probability_up = model.predict_proba_up(df)
     except ValueError as exc:
@@ -48,4 +56,6 @@ def predict_price_direction(request: PriceDirectionRequest) -> PriceDirectionRes
 
     from model import MODEL_VERSION
 
-    return PriceDirectionResponse(probability_up=probability_up, model_version=MODEL_VERSION)
+    return PriceDirectionResponse(
+        probability_up=probability_up, model_version=MODEL_VERSION
+    )

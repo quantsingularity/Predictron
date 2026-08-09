@@ -1,5 +1,4 @@
 from fastapi.testclient import TestClient
-
 from main import app
 
 client = TestClient(app)
@@ -51,9 +50,12 @@ def test_many_destination_addresses_flagged():
 def test_new_account_with_rapid_withdrawals_combo_rule():
     # age < 7 (+0.15) AND the age<3-with-withdrawals combo rule (+0.2);
     # withdrawal count itself stays below the separate >=5 threshold.
-    result = score(account_age_days=2, withdrawals_last_24h=3, total_amount_last_24h=500)
+    result = score(
+        account_age_days=2, withdrawals_last_24h=3, total_amount_last_24h=500
+    )
     assert result["risk_score"] == 0.35
     assert len(result["reasons"]) == 2
+
 
 def test_score_never_exceeds_one_even_when_every_heuristic_fires():
     result = score(
@@ -67,5 +69,7 @@ def test_score_never_exceeds_one_even_when_every_heuristic_fires():
 
 
 def test_rejects_a_malformed_request():
-    response = client.post("/risk/withdrawal-score", json={"activity": {"user_address": "0xabc"}})
+    response = client.post(
+        "/risk/withdrawal-score", json={"activity": {"user_address": "0xabc"}}
+    )
     assert response.status_code == 422
