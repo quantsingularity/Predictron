@@ -1,0 +1,67 @@
+# A self-managed Postgres, suitable for a demo/dev cluster. For a real
+# production deployment, point DATABASE_URL (in 10-secrets) at a managed
+# database (RDS, Cloud SQL, etc.) instead and skip this file entirely —
+# a single-replica StatefulSet with no automated backups isn't something
+# to trust real user data to.
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: predictron
+spec:
+  clusterIP: None # headless — StatefulSet pods get a stable DNS name
+  selector:
+    app: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: predictron
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: "predictron"
+            - name: POSTGRES_DB
+              value: "predictron"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: predictron-secrets
+                  key: POSTGRES_PASSWORD
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "predictron"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 5Gi

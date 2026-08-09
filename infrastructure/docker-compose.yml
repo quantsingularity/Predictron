@@ -1,0 +1,73 @@
+# Usage (run from the repo root or pass -f infrastructure/docker-compose.yml):
+#   docker compose -f infrastructure/docker-compose.yml up -d postgres        # just the DB, for scripts/dev.sh
+#   docker compose -f infrastructure/docker-compose.yml --profile prod up     # full built-image stack
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: predictron
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-predictron_dev_only}
+      POSTGRES_DB: predictron
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U predictron"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # No published host port by default — only other containers on this
+    # compose network can reach it. Uncomment for local GUI debugging only.
+    # ports:
+    #   - "5432:5432"
+
+  backend:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/backend.Dockerfile
+    env_file:
+      - ../code/backend/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # No published host port either, in the "prod" profile — the frontend's
+    # nginx is the only public entry point; it reverse-proxies /api to this
+    # container over the internal docker network (see infrastructure/nginx).
+    expose:
+      - "4000"
+    profiles: ["prod"]
+    restart: unless-stopped
+
+  ai-inference:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/ai-inference.Dockerfile
+    environment:
+      BACKEND_ORIGIN: "http://backend:4000"
+    expose:
+      - "8000"
+    # Deliberately no published host port under any profile — this service
+    # is reachable only from the backend container. Point the backend's
+    # AI_SERVICE_URL at http://ai-inference:8000 inside this network.
+    profiles: ["ai", "prod"]
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/frontend.Dockerfile
+      args:
+        VITE_BACKEND_URL: ${VITE_BACKEND_URL:-http://localhost:4000}
+        VITE_RPC_URL: ${VITE_RPC_URL:-https://bsc-dataseed1.binance.org}
+        VITE_STAKING_VAULT_ADDRESS: ${VITE_STAKING_VAULT_ADDRESS:-}
+        VITE_PREDICTION_GAME_ADDRESS: ${VITE_PREDICTION_GAME_ADDRESS:-}
+        VITE_STAKING_TOKEN_ADDRESS: ${VITE_STAKING_TOKEN_ADDRESS:-}
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    profiles: ["prod"]
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

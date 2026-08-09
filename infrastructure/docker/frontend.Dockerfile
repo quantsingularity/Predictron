@@ -1,0 +1,23 @@
+# Build context is the repo root.
+
+FROM node:20-alpine AS build
+WORKDIR /app
+ARG VITE_BACKEND_URL
+ARG VITE_RPC_URL
+ARG VITE_STAKING_VAULT_ADDRESS
+ARG VITE_PREDICTION_GAME_ADDRESS
+ARG VITE_STAKING_TOKEN_ADDRESS
+ENV VITE_BACKEND_URL=$VITE_BACKEND_URL \
+    VITE_RPC_URL=$VITE_RPC_URL \
+    VITE_STAKING_VAULT_ADDRESS=$VITE_STAKING_VAULT_ADDRESS \
+    VITE_PREDICTION_GAME_ADDRESS=$VITE_PREDICTION_GAME_ADDRESS \
+    VITE_STAKING_TOKEN_ADDRESS=$VITE_STAKING_TOKEN_ADDRESS
+COPY frontend/package.json frontend/package-lock.json* ./
+RUN npm install
+COPY frontend/ ./
+RUN npm run build
+
+FROM nginx:1.27-alpine AS runtime
+COPY --from=build /app/dist /usr/share/nginx/html
+COPY infrastructure/nginx/frontend.nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80

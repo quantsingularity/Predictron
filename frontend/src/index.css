@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-base text-text-primary;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-display;
+  }
+  /* Visible keyboard focus, kept even though most interaction here is
+     wallet-driven rather than form-driven. */
+  :focus-visible {
+    outline: 2px solid theme("colors.brand.DEFAULT");
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

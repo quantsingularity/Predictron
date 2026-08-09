@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+
+# Build output
+dist/
+build/
+frontend/dist/
+
+# Env files — only .env.example should ever be committed
+.env
+.env.*
+!.env.example
+
+# Prisma / DB
+code/backend/prisma/migrations/dev.db
+
+# ML artifacts — trained weights aren't committed, only the training code
+code/ai_services/inference_api/artifacts/**/*.joblib
+!code/ai_services/inference_api/artifacts/**/.gitkeep
+
+# Editor / OS
+.DS_Store
+.vscode/
+*.log
+
+# Hardhat
+code/blockchain/cache/
+code/blockchain/artifacts/
+code/blockchain/typechain-types/

@@ -1,0 +1,63 @@
+# No public exposure here (ClusterIP, not LoadBalancer or NodePort) — same
+# rule as the Docker Compose "prod" profile: the frontend's ingress is the
+# only path in from outside the cluster, reverse-proxying /api/ to this
+# Service. See 50-frontend.yaml and 60-ingress.yaml.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: predictron
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/OWNER/predictron-backend:latest # replace OWNER, or template via kustomize/CI
+          ports:
+            - containerPort: 4000
+          envFrom:
+            - configMapRef:
+                name: predictron-backend-config
+            - secretRef:
+                name: predictron-secrets
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 4000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 4000
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: predictron
+spec:
+  type: ClusterIP
+  selector:
+    app: backend
+  ports:
+    - port: 4000
+      targetPort: 4000

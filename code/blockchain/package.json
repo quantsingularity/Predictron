@@ -1,0 +1,24 @@
+{
+  "name": "@predictron/contracts",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "coverage": "hardhat coverage",
+    "deploy:testnet": "hardhat run scripts/deploy.ts --network bscTestnet",
+    "deploy:mainnet": "hardhat run scripts/deploy.ts --network bsc"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.0",
+    "hardhat-gas-reporter": "^1.0.10",
+    "solidity-coverage": "^0.8.12",
+    "typescript": "^5.6.0"
+  },
+  "dependencies": {
+    "@chainlink/contracts": "^1.2.0",
+    "@openzeppelin/contracts": "^5.0.2",
+    "dotenv": "^16.6.1"
+  }
+}
