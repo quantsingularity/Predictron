@@ -9,7 +9,7 @@ const COLOR: Record<RoundOutcome, string> = {
 
 /// A thin strip across the top of the app showing the last N round
 /// outcomes in order, oldest to newest. This is the one place we take a
-/// visual risk — but it's earned: for a prediction market, the sequence of
+/// visual risk, but it's earned: for a prediction market, the sequence of
 /// recent up/down closes *is* the information a returning user most wants
 /// at a glance, the way a heart-rate strip or a stock sparkline would be.
 export function EpochTicker({ outcomes }: { outcomes: RoundOutcome[] }) {

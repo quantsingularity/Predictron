@@ -103,7 +103,7 @@ describe("PredictionGame", () => {
     expect(balAfter - balBefore + gasCost).to.equal(expectedPayout);
     expect(await game.treasuryBalance()).to.equal(fee);
 
-    // Bob lost — claim succeeds with a zero payout, and can't be claimed twice
+    // Bob lost, claim succeeds with a zero payout, and can't be claimed twice
     await expect(game.connect(bob).claim(epoch))
       .to.emit(game, "Claimed")
       .withArgs(bob.address, epoch, 0);

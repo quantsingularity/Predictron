@@ -21,7 +21,7 @@ const RequestSchema = z.object({
 /// 200 with `data: null` is a completely normal, expected response when
 /// the AI service is offline or untrained. The frontend integration point
 /// for real market-data candles (e.g. an exchange's public klines API)
-/// lives wherever this route is called from — see code/ai_services/README.md for
+/// lives wherever this route is called from, see code/ai_services/README.md for
 /// the trust boundary this maintains.
 aiRouter.post("/price-direction", async (req, res, next) => {
   try {

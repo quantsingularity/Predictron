@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Starts the full stack for local development: Postgres in Docker, and
 # the backend/frontend/AI service running natively with hot reload
-# (faster iteration than rebuilding Docker images on every change — the
+# (faster iteration than rebuilding Docker images on every change, the
 # Dockerfiles under infrastructure/docker are for the "prod" profile, see
 # infrastructure/README.md).
 
@@ -40,7 +40,7 @@ if [[ -d "$ROOT_DIR/code/ai_services/inference_api/.venv" ]]; then
   ) &
   pids+=($!)
 else
-  echo "(skipping AI inference service — .venv not found; run scripts/bootstrap.sh first if you want it)"
+  echo "(skipping AI inference service, .venv not found; run scripts/bootstrap.sh first if you want it)"
 fi
 
 wait

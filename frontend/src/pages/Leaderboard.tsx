@@ -36,7 +36,7 @@ export default function Leaderboard() {
           Leaderboard
         </h1>
         <p className="max-w-xl text-sm text-text-muted">
-          Ranked by net winnings across every resolved prediction round —
+          Ranked by net winnings across every resolved prediction round,
           computed entirely from BetPlaced and Claimed events on-chain, not a
           score anyone can edit.
         </p>

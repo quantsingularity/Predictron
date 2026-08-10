@@ -11,11 +11,11 @@ from routers import price_direction, risk_signals  # noqa: E402
 app = FastAPI(
     title="Predictron AI Inference Service",
     description="Advisory-only signals: a price-direction probability and a withdrawal risk score. "
-    "Nothing here can move funds or settle a prediction round — see ../../README.md.",
+    "Nothing here can move funds or settle a prediction round, see ../../README.md.",
     version="1.0.0",
 )
 
-# Only the internal backend calls this service — lock CORS accordingly
+# Only the internal backend calls this service, lock CORS accordingly
 # rather than defaulting to '*'.
 app.add_middleware(
     CORSMiddleware,

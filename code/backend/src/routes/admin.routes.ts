@@ -9,7 +9,7 @@ export const adminRouter = Router();
 // request).
 //
 // Notice there is no "approve withdrawal" route here. Withdrawals aren't a
-// database row an admin flips to "approved" — they're the user calling
+// database row an admin flips to "approved", they're the user calling
 // StakingVault.unstake() or PredictionGame.claim() with their own wallet.
 // There is nothing for an admin (or an attacker impersonating one) to
 // approve, because there is no custodial queue.
@@ -77,8 +77,8 @@ adminRouter.get("/tickets", async (_req, res, next) => {
   }
 });
 
-/// Promoting a user to ADMIN is itself an admin-only, audited action —
-/// nothing in this codebase can self-assign the ADMIN role. In production,
+/// Promoting a user to ADMIN is itself an admin-only, audited action.
+/// Nothing in this codebase can self-assign the ADMIN role. In production,
 /// seed the first admin via a one-off migration/script run against the DB
 /// directly, not an API route.
 adminRouter.post("/tickets/:id/close", async (req, res, next) => {

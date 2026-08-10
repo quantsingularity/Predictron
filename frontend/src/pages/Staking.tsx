@@ -36,7 +36,7 @@ export default function Staking() {
         <h1 className="mb-2 font-display text-2xl font-semibold">Staking</h1>
         <p className="max-w-xl text-sm text-text-muted">
           Stake directly into the vault contract. Your tokens sit in the
-          contract, not a backend-controlled wallet — you unstake with your own
+          contract, not a backend-controlled wallet. You unstake with your own
           transaction whenever your plan unlocks.
         </p>
       </div>
@@ -104,7 +104,7 @@ export default function Staking() {
                   <td className="px-4 py-3">
                     {p.pendingReward
                       ? formatEther(BigInt(p.pendingReward))
-                      : "—"}
+                      : "-"}
                   </td>
                   <td className="flex gap-2 px-4 py-3">
                     {p.status === "ACTIVE" && (

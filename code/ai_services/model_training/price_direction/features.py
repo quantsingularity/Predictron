@@ -2,7 +2,7 @@
 Feature engineering for the short-horizon price-direction model.
 
 Takes a window of recent OHLCV candles and derives a small set of
-stationary, scale-independent features — raw price levels are deliberately
+stationary, scale-independent features, raw price levels are deliberately
 excluded so the model generalizes across price regimes instead of
 memorizing "BNB was around $600 in this training set."
 """

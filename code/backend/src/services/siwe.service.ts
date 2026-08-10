@@ -27,7 +27,7 @@ function makeReferralCode(): string {
 /// Step 2 of login: verify the signed SIWE message, consume the nonce,
 /// find-or-create the user, and issue a short-lived session JWT. The JWT
 /// only ever authorizes reading/writing this backend's own off-chain data
-/// (profile, tickets, referral display) — it has no on-chain power
+/// (profile, tickets, referral display), it has no on-chain power
 /// whatsoever. Every fund-moving action is still a transaction the user
 /// signs directly with their own wallet against the contracts.
 export async function verifySiweAndCreateSession(

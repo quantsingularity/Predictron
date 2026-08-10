@@ -1,6 +1,6 @@
 import { ethers } from "hardhat";
 
-// BSC mainnet addresses — override via env for testnet.
+// BSC mainnet addresses, override via env for testnet.
 const BUSD_MAINNET =
   process.env.STAKING_TOKEN_ADDRESS ??
   "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56";
@@ -12,7 +12,7 @@ async function main() {
   const [deployer] = await ethers.getSigners();
   console.log("Deploying with:", deployer.address);
 
-  // Owner should be a multisig/timelock in production — pass via env.
+  // Owner should be a multisig/timelock in production, pass via env.
   const owner = process.env.CONTRACT_OWNER_ADDRESS ?? deployer.address;
 
   const StakingVault = await ethers.getContractFactory("StakingVault");

@@ -8,7 +8,7 @@ import { computeLeaderboard } from "../lib/leaderboard.js";
 
 export const predictionRouter = Router();
 
-/// Live round state, read straight from the contract — this is what feeds
+/// Live round state, read straight from the contract, this is what feeds
 /// the "Live" card. Placing a bet is a direct `bet()` contract call from
 /// the user's wallet in the frontend, not a route here.
 predictionRouter.get("/rounds/:epoch", async (req, res, next) => {
@@ -58,7 +58,7 @@ predictionRouter.get("/my-bets", requireAuth, async (req, res, next) => {
 });
 
 /// Leaderboard ranked by net winnings, computed entirely from indexed
-/// contract events (BetPlaced + Claimed) — there is no separately-tracked
+/// contract events (BetPlaced + Claimed), there is no separately-tracked
 /// "score" a user or admin could edit. amount/payout are stored as
 /// wei-precision decimal strings (they can exceed Number.MAX_SAFE_INTEGER),
 /// so the sums are done with BigInt in JS rather than a SQL SUM().

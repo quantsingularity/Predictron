@@ -6,7 +6,7 @@ router = APIRouter(prefix="/risk", tags=["risk-signals"])
 # Deliberately rule-based rather than a trained model: for a small number
 # of well-understood fraud heuristics, explainable rules that an admin can
 # read and immediately understand ("why did this flag?") beat an opaque
-# classifier — and this endpoint's whole job is to help a human decide
+# classifier, and this endpoint's whole job is to help a human decide
 # where to look, not to make the decision itself.
 
 

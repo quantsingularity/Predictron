@@ -9,7 +9,7 @@ dist/
 build/
 frontend/dist/
 
-# Env files — only .env.example should ever be committed
+# Env files, only .env.example should ever be committed
 .env
 .env.*
 !.env.example
@@ -17,7 +17,7 @@ frontend/dist/
 # Prisma / DB
 code/backend/prisma/migrations/dev.db
 
-# ML artifacts — trained weights aren't committed, only the training code
+# ML artifacts, trained weights aren't committed, only the training code
 code/ai_services/inference_api/artifacts/**/*.joblib
 !code/ai_services/inference_api/artifacts/**/.gitkeep
 

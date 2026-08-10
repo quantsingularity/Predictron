@@ -8,13 +8,15 @@ data:
   CHAIN_ID: "56"
   STAKING_VAULT_ADDRESS: "0x0000000000000000000000000000000000000000"
   PREDICTION_GAME_ADDRESS: "0x0000000000000000000000000000000000000000"
+  REFERRAL_REGISTRY_ADDRESS: "0x0000000000000000000000000000000000000000"
   STAKING_VAULT_DEPLOY_BLOCK: "0"
   PREDICTION_GAME_DEPLOY_BLOCK: "0"
+  INDEXER_CONFIRMATION_BLOCKS: "15"
   SESSION_TTL_HOURS: "24"
   SIWE_DOMAIN: "app.predictron.example"
   SIWE_URI: "https://app.predictron.example"
   CORS_ORIGIN: "https://app.predictron.example"
   PORT: "4000"
   LOG_LEVEL: "info"
-  # Cluster-internal DNS name — see 40-ai-inference.yaml's Service.
+  # Cluster-internal DNS name, see 40-ai-inference.yaml's Service.
   AI_SERVICE_URL: "http://ai-inference:8000"

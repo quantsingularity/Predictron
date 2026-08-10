@@ -5,8 +5,8 @@ import { prisma } from "../lib/prisma.js";
 
 export const SESSION_COOKIE_NAME = "predictron_session";
 
-/// Shared cookie options so login (set) and logout (clear) always agree —
-/// a mismatched `secure`/`sameSite` between set and clear is a classic way
+/// Shared cookie options so login (set) and logout (clear) always agree.
+/// A mismatched `secure`/`sameSite` between set and clear is a classic way
 /// to leave a stale cookie the browser won't overwrite.
 export function sessionCookieOptions() {
   return {
@@ -33,15 +33,15 @@ declare global {
 }
 
 /// Requires a valid session. Three properties worth calling out:
-///  1. The session token lives in an httpOnly cookie, never in a JSON
-///     response body or localStorage — client-side JS (and therefore an
-///     XSS payload) can never read it, only send it back automatically.
-///  2. A missing or malformed cookie is rejected outright, no fallback
-///     path treats an absent token as authenticated.
-///  3. The user's role is re-read from the database on every request
-///     instead of trusting whatever role was baked into the JWT at login
-///     time, so a role change (promotion, demotion, ban) takes effect
-///     immediately rather than waiting for the session to expire.
+/// 1. The session token lives in an httpOnly cookie, never in a JSON
+/// response body or localStorage, client-side JS (and therefore an
+/// XSS payload) can never read it, only send it back automatically.
+/// 2. A missing or malformed cookie is rejected outright, no fallback
+/// path treats an absent token as authenticated.
+/// 3. The user's role is re-read from the database on every request
+/// instead of trusting whatever role was baked into the JWT at login
+/// time, so a role change (promotion, demotion, ban) takes effect
+/// immediately rather than waiting for the session to expire.
 export async function requireAuth(
   req: Request,
   res: Response,

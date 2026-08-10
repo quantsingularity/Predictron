@@ -107,7 +107,7 @@ export default function Prediction() {
       <h1 className="mb-6 font-display text-2xl font-semibold">Prediction</h1>
       <p className="mb-6 max-w-xl text-sm text-text-muted">
         Each round&apos;s lock and close price is read from Chainlink by the
-        contract itself. Bets are escrowed on-chain — winners claim their own
+        contract itself. Bets are escrowed on-chain, winners claim their own
         payout, nobody approves it for them.
       </p>
       <div className="flex gap-4 overflow-x-auto pb-2">

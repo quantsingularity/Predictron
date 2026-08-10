@@ -3,8 +3,8 @@ A deliberately simple, well-calibrated model over a fancy one.
 
 Gradient-boosted trees on hand-engineered features rather than a deep
 sequence model: at 5-minute-candle horizons the signal-to-noise ratio is
-low, the dataset is modest, and — since this output is only ever shown as
-an advisory probability next to the real settlement price — a model whose
+low, the dataset is modest, and, since this output is only ever shown as
+an advisory probability next to the real settlement price, a model whose
 probabilities are actually well-calibrated matters more than a marginal
 accuracy gain from a heavier architecture.
 """

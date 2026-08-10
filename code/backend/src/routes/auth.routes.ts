@@ -34,8 +34,8 @@ const VerifySchema = z.object({
 });
 
 /// Sets the session as an httpOnly cookie rather than returning the JWT in
-/// the response body. The frontend never sees or stores the token itself —
-/// it just gets a plain "you're logged in as this address" confirmation,
+/// the response body. The frontend never sees or stores the token itself.
+/// It just gets a plain "you're logged in as this address" confirmation,
 /// and every subsequent request carries the cookie automatically.
 authRouter.post("/verify", async (req, res, next) => {
   try {

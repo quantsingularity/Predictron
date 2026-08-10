@@ -75,7 +75,7 @@ export default function Referrals() {
           Two separate things live on this page: your referral link (who signed
           up because of you) and your on-chain referrer registration (who you
           earn a reward from). Every reward accrual and claim below is a real
-          contract event, not a database row — see PredictionGame.sol.
+          contract event, not a database row, see PredictionGame.sol.
         </p>
       </div>
 
@@ -105,7 +105,7 @@ export default function Referrals() {
         ) : (
           <div className="mt-3 flex flex-col gap-2">
             <p className="text-sm text-text-muted">
-              Not set yet — this is permanent once you do, so it can&apos;t be
+              Not set yet, this is permanent once you do, so it can&apos;t be
               reassigned later.
             </p>
             <input

@@ -29,7 +29,7 @@ interface AdminTicket {
 /// This page hides itself if `me.role !== 'ADMIN'`, which is a nicety for
 /// the UI only. The thing that actually stops a non-admin from seeing this
 /// data is that every request below hits a backend route wrapped in
-/// requireAuth + requireAdmin (see backend/src/routes/admin.routes.ts) — a
+/// requireAuth + requireAdmin (see backend/src/routes/admin.routes.ts), a
 /// user who edited this component to bypass the client-side check would
 /// still get a 403 from the server on every call.
 export default function Admin() {

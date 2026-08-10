@@ -9,13 +9,13 @@ import {Ownable2Step, Ownable} from "@openzeppelin/contracts/access/Ownable2Step
 
 /// @title StakingVault
 /// @notice Fully non-custodial staking. Users stake an ERC20 token (e.g.
-///         BUSD) directly into this contract and withdraw from it directly
-///         — no backend, admin panel, or private key is ever in the path
-///         of user funds. The backend only *reads* the events this
-///         contract emits; it cannot move funds.
+/// BUSD) directly into this contract and withdraw from it directly, no
+/// backend, admin panel, or private key is ever in the path of user
+/// funds. The backend only *reads* the events this contract emits; it
+/// cannot move funds.
 /// @dev Rewards accrue continuously per-second using an accumulator pattern
-///      (like MasterChef / Synthetix StakingRewards) to avoid unbounded
-///      gas loops over stakers.
+/// (like MasterChef / Synthetix StakingRewards) to avoid unbounded
+/// gas loops over stakers.
 contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
     using SafeERC20 for IERC20;
 
@@ -39,7 +39,7 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
     IERC20 public immutable stakingToken;
 
     /// @notice reward token can be the same as stakingToken or a separate
-    /// governance/reward token — kept as its own address for flexibility.
+    /// governance/reward token, kept as its own address for flexibility.
     IERC20 public immutable rewardToken;
 
     uint256 public nextPlanId = 1;
@@ -59,7 +59,13 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
 
     event PlanCreated(uint256 indexed planId, uint256 lockDurationSeconds, uint256 rewardRateBps);
     event PlanUpdated(uint256 indexed planId, bool active, uint256 rewardRateBps);
-    event Staked(address indexed user, uint256 indexed positionId, uint256 indexed planId, uint256 amount, uint256 unlockTimestamp);
+    event Staked(
+        address indexed user,
+        uint256 indexed positionId,
+        uint256 indexed planId,
+        uint256 amount,
+        uint256 unlockTimestamp
+    );
     event Unstaked(address indexed user, uint256 indexed positionId, uint256 amount, uint256 rewardPaid);
     event RewardClaimed(address indexed user, uint256 indexed positionId, uint256 amount);
     event RewardsFunded(address indexed from, uint256 amount);
@@ -81,14 +87,22 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
     }
 
     // ---------------------------------------------------------------------
-    // Admin (owner) actions — parameter changes only, never a path that can
+    // Admin (owner) actions, parameter changes only, never a path that can
     // move a *user's* staked funds. Recommend the deployer set `initialOwner`
     // to a Gnosis Safe / timelock rather than a single EOA in production.
     // ---------------------------------------------------------------------
 
-    function createPlan(uint256 lockDurationSeconds, uint256 rewardRateBps) external onlyOwner returns (uint256 planId) {
+    function createPlan(
+        uint256 lockDurationSeconds,
+        uint256 rewardRateBps
+    ) external onlyOwner returns (uint256 planId) {
         planId = nextPlanId++;
-        plans[planId] = Plan({id: planId, lockDurationSeconds: lockDurationSeconds, rewardRateBps: rewardRateBps, active: true});
+        plans[planId] = Plan({
+            id: planId,
+            lockDurationSeconds: lockDurationSeconds,
+            rewardRateBps: rewardRateBps,
+            active: true
+        });
         emit PlanCreated(planId, lockDurationSeconds, rewardRateBps);
     }
 
@@ -106,7 +120,7 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
     }
 
     /// @notice Anyone can top up the reward reserve (typically the protocol
-    /// treasury). This is the only way reward tokens enter the contract —
+    /// treasury). This is the only way reward tokens enter the contract,
     /// there is no owner-only "mint reward" backdoor.
     function fundRewards(uint256 amount) external {
         if (amount == 0) revert ZeroAmount();
@@ -116,10 +130,10 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
     }
 
     /// @notice Recover a token accidentally sent directly to this contract
-    ///         (i.e. not via stake() or fundRewards()). Explicitly cannot
-    ///         touch stakingToken or rewardToken, so it can never be used
-    ///         to pull out user principal or the reward reserve — only an
-    ///         unrelated token balance sitting here by mistake.
+    /// (i.e. not via stake() or fundRewards()). Explicitly cannot
+    /// touch stakingToken or rewardToken, so it can never be used
+    /// to pull out user principal or the reward reserve, only an
+    /// unrelated token balance sitting here by mistake.
     function recoverForeignToken(address token, address to, uint256 amount) external onlyOwner {
         if (token == address(stakingToken) || token == address(rewardToken)) revert CannotRecoverVaultToken();
         if (to == address(0)) revert ZeroAddress();
@@ -194,11 +208,11 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
 
     /// @notice Withdraw principal (+ any accrued reward) once unlocked.
     /// @dev Principal withdrawal is never blocked by an empty reward
-    ///      reserve: if the reserve can't cover the full accrued reward,
-    ///      this pays out whatever is available now and keeps the
-    ///      unpaid remainder as a claimable balance on the (now
-    ///      zero-amount) position, so it isn't lost, it's paid the next
-    ///      time claimReward() is called after the reserve is topped up.
+    /// reserve: if the reserve can't cover the full accrued reward,
+    /// this pays out whatever is available now and keeps the
+    /// unpaid remainder as a claimable balance on the (now
+    /// zero-amount) position, so it isn't lost, it's paid the next
+    /// time claimReward() is called after the reserve is topped up.
     function unstake(uint256 positionId) external nonReentrant {
         StakePosition storage pos = positions[msg.sender][positionId];
         if (pos.amount == 0) revert NothingStaked();

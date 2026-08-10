@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Promotes a user to the ADMIN role. There is deliberately no API route
-# that does this (see code/backend/README.md) — granting admin access is a
+# that does this (see code/backend/README.md). Granting admin access is a
 # manual, auditable operational action, not a button anywhere in the app.
 #
 # Usage: scripts/seed-admin.sh 0xYourAddress
@@ -34,7 +34,7 @@ fi
 
 LOWER_ADDRESS="$(echo "$ADDRESS" | tr '[:upper:]' '[:lower:]')"
 
-# -v/:'address' is psql's own parameter substitution — the address is
+# -v/:'address' is psql's own parameter substitution. The address is
 # bound as a value, never concatenated into the SQL string, so this stays
 # injection-safe even though the input came straight from argv. Same
 # principle as the Prisma-parameterized queries everywhere else in this
@@ -43,4 +43,4 @@ LOWER_ADDRESS="$(echo "$ADDRESS" | tr '[:upper:]' '[:lower:]')"
 psql "$DATABASE_URL" -v address="$LOWER_ADDRESS" -c \
   "UPDATE \"User\" SET role = 'ADMIN' WHERE address = :'address';"
 
-echo "Done. If no rows were affected, that address hasn't signed in yet — sign in once via the app, then re-run this."
+echo "Done. If no rows were affected, that address hasn't signed in yet. Sign in once via the app, then re-run this."

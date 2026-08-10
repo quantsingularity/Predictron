@@ -22,7 +22,7 @@ export async function getPriceDirectionSignal(
   if (!env.AI_SERVICE_URL) return null;
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 2000); // short timeout — this is a nice-to-have, not a blocking dependency
+    const timeout = setTimeout(() => controller.abort(), 2000); // short timeout, this is a nice-to-have, not a blocking dependency
     const res = await fetch(`${env.AI_SERVICE_URL}/predict/price-direction`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

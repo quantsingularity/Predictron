@@ -7,15 +7,15 @@ import { api } from "../lib/api";
 import { useCurrentUser } from "./useCurrentUser";
 
 /// The entire login flow, end to end:
-///  1. Ask the backend for a nonce tied to the connected address.
-///  2. Build a standard SIWE message and ask the wallet to sign it —
-///     MetaMask/WalletConnect show the human-readable message, the user
-///     approves, and the private key never leaves the wallet extension/app.
-///  3. Send the signed message to the backend, which verifies the
-///     signature and sets an httpOnly session cookie scoped to this
-///     backend's own data — it cannot authorize any on-chain action, and
-///     the frontend never sees the token itself, only a plain "signed in
-///     as this address" confirmation.
+/// 1. Ask the backend for a nonce tied to the connected address.
+/// 2. Build a standard SIWE message and ask the wallet to sign it.
+/// MetaMask/WalletConnect show the human-readable message, the user
+/// approves, and the private key never leaves the wallet extension/app.
+/// 3. Send the signed message to the backend, which verifies the
+/// signature and sets an httpOnly session cookie scoped to this
+/// backend's own data, it cannot authorize any on-chain action, and
+/// the frontend never sees the token itself, only a plain "signed in
+/// as this address" confirmation.
 export function useAuth() {
   const { address, chainId } = useAccount();
   const { signMessageAsync } = useSignMessage();
@@ -59,7 +59,7 @@ export function useAuth() {
           referralCode,
         });
         // The cookie is already set by the browser from the response's
-        // Set-Cookie header — nothing for this code to store. Refetch
+        // Set-Cookie header, nothing for this code to store. Refetch
         // "who am I" so every consumer of useCurrentUser picks up the
         // new session, then navigate without a full page reload.
         await queryClient.invalidateQueries({ queryKey: ["me"] });

@@ -1,4 +1,4 @@
-# No public exposure here (ClusterIP, not LoadBalancer or NodePort) — same
+# No public exposure here (ClusterIP, not LoadBalancer or NodePort), same
 # rule as the Docker Compose "prod" profile: the frontend's ingress is the
 # only path in from outside the cluster, reverse-proxying /api/ to this
 # Service. See 50-frontend.yaml and 60-ingress.yaml.

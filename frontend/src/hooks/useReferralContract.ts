@@ -31,7 +31,7 @@ export function useReferralContract() {
   );
 
   /// Register `referrer` as the connected wallet's referrer, on-chain,
-  /// one time. This is a real transaction the user signs themselves —
+  /// one time. This is a real transaction the user signs themselves,
   /// there's no backend step that could fail to reflect it.
   async function setReferrer(referrer: `0x${string}`) {
     return writeContractAsync({
@@ -43,7 +43,7 @@ export function useReferralContract() {
   }
 
   /// Withdraw everything accrued so far from referred users' winning
-  /// claims. Separate from any of their claims by design — see
+  /// claims. Separate from any of their claims by design, see
   /// PredictionGame.sol's comment on pendingReferralReward.
   async function claimReferralReward() {
     return writeContractAsync({

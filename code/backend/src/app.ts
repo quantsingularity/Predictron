@@ -44,7 +44,7 @@ export function createApp() {
 
   // Deliberately no webhook routes. Balance-affecting facts come only from
   // the chain indexer reading contract event logs (see
-  // services/indexer.service.ts) — there is nothing here for an
+  // services/indexer.service.ts), there is nothing here for an
   // unauthenticated POST to forge.
 
   app.use((req, res) => {

@@ -2,11 +2,11 @@
 //
 // Design note: this database is a READ CACHE of on-chain events plus
 // off-chain-only concerns (profile metadata, referral attribution, support
-// tickets, admin roles). It is never the source of truth for a balance —
+// tickets, admin roles). It is never the source of truth for a balance.
 // StakingVault.sol and PredictionGame.sol are. If this DB were wiped, a
 // full re-index from chain would reconstruct every stake, bet, and payout;
 // it would NOT be possible to forge a balance by writing to this DB, because
-// nothing reads balances from here to authorize a withdrawal — withdrawals
+// nothing reads balances from here to authorize a withdrawal, withdrawals
 // happen contract-side, signed by the user's own wallet.
 
 generator client {
@@ -24,20 +24,20 @@ enum Role {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  address       String    @unique // checksummed EVM address, the only identity
-  role          Role      @default(USER)
-  referralCode  String    @unique
-  referredById  String?
-  referredBy    User?     @relation("Referrals", fields: [referredById], references: [id])
-  referrals     User[]    @relation("Referrals")
-  createdAt     DateTime  @default(now())
+  id              String     @id @default(cuid())
+  address         String     @unique // checksummed EVM address, the only identity
+  role            Role       @default(USER)
+  referralCode    String     @unique
+  referredById    String?
+  referredBy      User?      @relation("Referrals", fields: [referredById], references: [id])
+  referrals       User[]     @relation("Referrals")
+  createdAt       DateTime   @default(now())
 
-  stakes        IndexedStake[]
-  bets          IndexedBet[]
+  stakes          IndexedStake[]
+  bets            IndexedBet[]
   referralPayouts ReferralPayout[]
-  tickets       Ticket[]
-  nonces        AuthNonce[]
+  tickets         Ticket[]
+  nonces          AuthNonce[]
 
   @@index([referredById])
 }
@@ -45,48 +45,48 @@ model User {
 /// One row per SIWE login nonce. Consumed (deleted) on successful verify to
 /// prevent replay; expired ones are swept by a periodic job.
 model AuthNonce {
-  id        String   @id @default(cuid())
+  id          String   @id @default(cuid())
   userAddress String
-  nonce     String   @unique
-  expiresAt DateTime
-  user      User?    @relation(fields: [userAddress], references: [address])
+  nonce       String   @unique
+  expiresAt   DateTime
+  user        User?    @relation(fields: [userAddress], references: [address])
 
   @@index([userAddress])
 }
 
 /// Mirrors StakingVault.Staked / Unstaked events. Populated only by the
-/// indexer job reading contract logs — never written to from a user-facing
+/// indexer job reading contract logs, never written to from a user-facing
 /// route.
 model IndexedStake {
-  id                String   @id @default(cuid())
-  userId            String
-  user              User     @relation(fields: [userId], references: [id])
-  chainPositionId   BigInt
-  planId            BigInt
-  amount            String   // wei-precision decimal string
-  stakeTxHash       String   @unique
-  unstakeTxHash     String?
-  rewardPaid        String?
-  status            String   @default("ACTIVE") // ACTIVE | UNSTAKED
-  startBlock        BigInt
-  unlockTimestamp   DateTime?
-  createdAt         DateTime @default(now())
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  chainPositionId BigInt
+  planId          BigInt
+  amount          String // wei-precision decimal string
+  stakeTxHash     String    @unique
+  unstakeTxHash   String?
+  rewardPaid      String?
+  status          String    @default("ACTIVE") // ACTIVE | UNSTAKED
+  startBlock      BigInt
+  unlockTimestamp DateTime?
+  createdAt       DateTime  @default(now())
 
   @@index([userId])
 }
 
 /// Mirrors PredictionGame.BetPlaced / Claimed events.
 model IndexedBet {
-  id           String   @id @default(cuid())
-  userId       String
-  user         User     @relation(fields: [userId], references: [id])
-  epoch        BigInt
-  position     String   // "UP" | "DOWN"
-  amount       String
-  betTxHash    String   @unique
-  claimTxHash  String?
-  payout       String?
-  createdAt    DateTime @default(now())
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  epoch       BigInt
+  position    String // "UP" | "DOWN"
+  amount      String
+  betTxHash   String   @unique
+  claimTxHash String?
+  payout      String?
+  createdAt   DateTime @default(now())
 
   @@index([userId])
   @@index([epoch])
@@ -96,7 +96,7 @@ model IndexedBet {
 /// events. One row per accrual (one per winning claim by a referred user),
 /// so a referrer's total is the sum of their rows, not a single mutable
 /// balance. The actual token transfer happens on-chain when the referrer
-/// calls claimReferralReward() themselves — this table is a read cache of
+/// calls claimReferralReward() themselves, this table is a read cache of
 /// that history, never a payable balance the backend could alter.
 model ReferralPayout {
   id             String   @id @default(cuid())
@@ -115,12 +115,12 @@ model ReferralPayout {
 }
 
 model Ticket {
-  id        String        @id @default(cuid())
+  id        String          @id @default(cuid())
   userId    String
-  user      User          @relation(fields: [userId], references: [id])
+  user      User            @relation(fields: [userId], references: [id])
   subject   String
-  status    String        @default("OPEN") // OPEN | PENDING | CLOSED
-  createdAt DateTime      @default(now())
+  status    String          @default("OPEN") // OPEN | PENDING | CLOSED
+  createdAt DateTime        @default(now())
   messages  TicketMessage[]
 
   @@index([userId])
@@ -140,7 +140,7 @@ model TicketMessage {
 /// Tracks the last block processed per contract so the indexer can resume
 /// safely after a restart without re-scanning from genesis or missing a gap.
 model IndexerCursor {
-  contractAddress String @id
+  contractAddress String   @id
   lastBlock       BigInt
   updatedAt       DateTime @updatedAt
 }

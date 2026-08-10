@@ -9,7 +9,7 @@ admin analytics).
 
 - No wallet/private key anywhere in this package.
 - No `/webhooks/...` route that credits a balance from client input.
-- No admin route that approves a withdrawal — withdrawals are the user's own
+- No admin route that approves a withdrawal. Withdrawals are the user's own
   `unstake()`/`claim()` transaction against the contracts in `../contracts`.
 
 ## Run locally
@@ -23,7 +23,7 @@ npm run dev
 
 ## Promoting the first admin
 
-There is intentionally no API route that grants the `ADMIN` role — that
+There is intentionally no API route that grants the `ADMIN` role. That
 would just be the same "unauthenticated endpoint that changes privilege"
 bug in a new shape. Grant it directly against the database instead:
 

@@ -40,7 +40,7 @@ const EnvSchema = z.object({
   PORT: z.coerce.number().int().positive().default(4000),
 
   // Optional: URL of code/ai_services/inference_api. Absent or unreachable
-  // simply means "no AI signal available" — never a fatal boot condition.
+  // simply means "no AI signal available", never a fatal boot condition.
   AI_SERVICE_URL: z.string().url().optional(),
   LOG_LEVEL: z
     .enum(["fatal", "error", "warn", "info", "debug", "trace"])

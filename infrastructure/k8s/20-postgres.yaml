@@ -1,7 +1,7 @@
 # A self-managed Postgres, suitable for a demo/dev cluster. For a real
 # production deployment, point DATABASE_URL (in 10-secrets) at a managed
-# database (RDS, Cloud SQL, etc.) instead and skip this file entirely —
-# a single-replica StatefulSet with no automated backups isn't something
+# database (RDS, Cloud SQL, etc.) instead and skip this file entirely.
+# A single-replica StatefulSet with no automated backups isn't something
 # to trust real user data to.
 
 apiVersion: v1
@@ -10,7 +10,7 @@ metadata:
   name: postgres
   namespace: predictron
 spec:
-  clusterIP: None # headless — StatefulSet pods get a stable DNS name
+  clusterIP: None # headless, StatefulSet pods get a stable DNS name
   selector:
     app: postgres
   ports:

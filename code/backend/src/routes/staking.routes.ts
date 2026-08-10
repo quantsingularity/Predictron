@@ -8,8 +8,8 @@ import { env } from "../config/env.js";
 export const stakingRouter = Router();
 
 /// Everything here is read-only. Staking/unstaking themselves happen when
-/// the user's own wallet calls StakingVault.stake()/unstake() directly —
-/// there is intentionally no `POST /stake` route on this backend, because
+/// the user's own wallet calls StakingVault.stake()/unstake() directly.
+/// There is intentionally no `POST /stake` route on this backend, because
 /// this backend cannot move the user's tokens and should not pretend to.
 stakingRouter.get("/positions", requireAuth, async (req, res, next) => {
   try {

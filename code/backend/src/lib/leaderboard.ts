@@ -15,7 +15,7 @@ export interface LeaderboardEntry {
 }
 
 /// Aggregates resolved bets into a ranked leaderboard. Pure and
-/// side-effect free so it can be unit tested without a database — the
+/// side-effect free so it can be unit tested without a database, the
 /// route handler is just "fetch resolved bets, call this, respond".
 export function computeLeaderboard(
   bets: ResolvedBetInput[],

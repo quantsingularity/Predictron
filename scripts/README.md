@@ -17,5 +17,5 @@ scripts/seed-admin.sh 0xYourAddress      # after you've signed in once, grants y
 | `bootstrap.sh`                  | Installs dependencies for `frontend/`, `code/backend/`, `code/blockchain/`, and creates a venv + installs deps for `code/ai_services/inference_api/` |
 | `check-env.sh`                  | Fails fast with a clear message if a required `.env` is missing, instead of letting `dev.sh` half-start                                              |
 | `dev.sh`                        | Starts Postgres via `infrastructure/docker-compose.yml`, then backend/frontend/AI service natively (hot reload)                                      |
-| `deploy-contracts.sh [network]` | Runs the Hardhat deploy script and writes the resulting contract addresses into both `.env` files — no manual copy-paste                             |
-| `seed-admin.sh <address>`       | Grants the `ADMIN` role to an address that has already signed in once. There's no API route for this on purpose — see `code/backend/README.md`       |
+| `deploy-contracts.sh [network]` | Runs the Hardhat deploy script and writes the resulting contract addresses into both `.env` files. No manual copy-paste                              |
+| `seed-admin.sh <address>`       | Grants the `ADMIN` role to an address that has already signed in once. There's no API route for this on purpose, see `code/backend/README.md`        |
