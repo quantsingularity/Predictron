@@ -2,8 +2,8 @@
 
 **A non custodial platform for on chain price prediction rounds and staking, backed by an advisory AI signal layer.**
 
+<div align="center">
 <img src="docs/images/homepage.bmp" alt="Predictron homepage" width="80%">
-
 </div>
 
 Every fund moving action in Predictron, staking, unstaking, claiming a reward, placing a bet, or claiming a payout, is a transaction signed by the user's own wallet. The backend never touches a private key, and the AI layer never touches a fund. Those two boundaries shape almost every design decision in this repository.
@@ -22,15 +22,20 @@ Every fund moving action in Predictron, staking, unstaking, claiming a reward, p
 
 ## Project structure
 
-| Path                 | Description                                                                                                     |
-| -------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `frontend/`          | React, TypeScript, Vite, wagmi/viem UI. Public homepage at `/`, authenticated dashboard at `/dashboard`.        |
-| `code/backend/`      | Node, TypeScript, Express API and on chain event indexer. Read only with respect to funds.                      |
-| `code/blockchain/`   | Solidity contracts: `StakingVault.sol`, `PredictionGame.sol`, `ReferralRegistry.sol`. Funds are held here.      |
-| `code/ai_services/`  | Advisory only ML: `model_training/price_direction` (training code) and `inference_api` (FastAPI serving layer). |
-| `scripts/`           | Operational scripts: bootstrap, env checks, contract deploy, admin promotion.                                   |
-| `infrastructure/`    | Docker Compose, Dockerfiles, nginx config, and Kubernetes manifests.                                            |
-| `.github/workflows/` | CI (lint, typecheck, build, contract compile) and Docker image publishing.                                      |
+```
+Predictron/
+├── code/
+│   ├── backend/            # Node, TypeScript, Express API and on chain event indexer
+|   ├── blockchain/         # Hardhat/Truffle project with Solidity contracts
+│   └── ai_services/        # Advisory only ML: training code and FastAPI serving layer
+├── docs/                   # Project documentation
+├── infrastructure/         # Docker Compose, Dockerfiles, nginx config, and Kubernetes manifests
+├── frontend/               # React, TypeScript, Vite, wagmi/viem UI
+├── scripts/                # Operational scripts: bootstrap, env checks, contract deploy, admin promotion
+├── .github/workflows/      # CI (lint, typecheck, build, contract compile) and Docker image publishing
+├── LICENSE
+└── README.md
+```
 
 ## Tech stack
 
@@ -86,7 +91,7 @@ See `scripts/README.md` for what each script does.
 The steps above assume a testnet RPC and testnet funds. If you want everything running locally with no external accounts at all:
 
 ```bash
-scripts/bootstrap.sh                              # installs every package's dependencies
+scripts/bootstrap.sh  # installs every package's dependencies
 
 # terminal 1, leave running
 docker compose -f infrastructure/docker-compose.yml up -d postgres
@@ -102,15 +107,15 @@ STAKING_TOKEN_ADDRESS=<printed> PRICE_FEED_ADDRESS=<printed> \
   ../../scripts/deploy-contracts.sh localhost
 # this writes the deployed addresses into code/backend/.env and frontend/.env for you
 
-cp code/backend/.env.example code/backend/.env    # deploy-contracts.sh edits this in place, so run the copy first
+cp code/backend/.env.example code/backend/.env  # deploy-contracts.sh edits this in place, so run the copy first
 cp frontend/.env.example frontend/.env
-openssl rand -hex 32                              # paste into code/backend/.env as SESSION_JWT_SECRET
+openssl rand -hex 32  # paste into code/backend/.env as SESSION_JWT_SECRET
 ```
 
 ```bash
 cd code/backend && npx prisma migrate dev --name init
 cd ../..
-scripts/dev.sh                                     # backend, frontend, and AI service, all with hot reload
+scripts/dev.sh  # backend, frontend, and AI service, all with hot reload
 ```
 
 ### Package by package
