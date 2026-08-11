@@ -5,7 +5,10 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
-import {Ownable2Step, Ownable} from "@openzeppelin/contracts/access/Ownable2Step.sol";
+import {
+    Ownable2Step,
+    Ownable
+} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 
 /// @title StakingVault
 /// @notice Non-custodial staking vault. Rewards accrue per-second via an accumulator pattern.
@@ -41,8 +44,16 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
     uint256 public totalStaked;
     uint256 public rewardReserve;
 
-    event PlanCreated(uint256 indexed planId, uint256 lockDurationSeconds, uint256 rewardRateBps);
-    event PlanUpdated(uint256 indexed planId, bool active, uint256 rewardRateBps);
+    event PlanCreated(
+        uint256 indexed planId,
+        uint256 lockDurationSeconds,
+        uint256 rewardRateBps
+    );
+    event PlanUpdated(
+        uint256 indexed planId,
+        bool active,
+        uint256 rewardRateBps
+    );
     event Staked(
         address indexed user,
         uint256 indexed positionId,
@@ -50,8 +61,17 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
         uint256 amount,
         uint256 unlockTimestamp
     );
-    event Unstaked(address indexed user, uint256 indexed positionId, uint256 amount, uint256 rewardPaid);
-    event RewardClaimed(address indexed user, uint256 indexed positionId, uint256 amount);
+    event Unstaked(
+        address indexed user,
+        uint256 indexed positionId,
+        uint256 amount,
+        uint256 rewardPaid
+    );
+    event RewardClaimed(
+        address indexed user,
+        uint256 indexed positionId,
+        uint256 amount
+    );
     event RewardsFunded(address indexed from, uint256 amount);
 
     error PlanNotActive();
@@ -62,8 +82,16 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
     error ZeroAddress();
     error CannotRecoverVaultToken();
 
-    constructor(address _stakingToken, address _rewardToken, address initialOwner) Ownable(initialOwner) {
-        if (_stakingToken == address(0) || _rewardToken == address(0) || initialOwner == address(0)) {
+    constructor(
+        address _stakingToken,
+        address _rewardToken,
+        address initialOwner
+    ) Ownable(initialOwner) {
+        if (
+            _stakingToken == address(0) ||
+            _rewardToken == address(0) ||
+            initialOwner == address(0)
+        ) {
             revert ZeroAddress();
         }
         stakingToken = IERC20(_stakingToken);
@@ -107,15 +135,23 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
     }
 
     /// @notice Recover a foreign token sent here by mistake. Cannot touch stakingToken/rewardToken.
-    function recoverForeignToken(address token, address to, uint256 amount) external onlyOwner {
-        if (token == address(stakingToken) || token == address(rewardToken)) revert CannotRecoverVaultToken();
+    function recoverForeignToken(
+        address token,
+        address to,
+        uint256 amount
+    ) external onlyOwner {
+        if (token == address(stakingToken) || token == address(rewardToken))
+            revert CannotRecoverVaultToken();
         if (to == address(0)) revert ZeroAddress();
         IERC20(token).safeTransfer(to, amount);
     }
 
     // -- User actions --
 
-    function stake(uint256 planId, uint256 amount) external nonReentrant whenNotPaused returns (uint256 positionId) {
+    function stake(
+        uint256 planId,
+        uint256 amount
+    ) external nonReentrant whenNotPaused returns (uint256 positionId) {
         Plan memory plan = plans[planId];
         if (!plan.active) revert PlanNotActive();
         if (amount == 0) revert ZeroAmount();
@@ -123,11 +159,15 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
         // Credit the actual received amount, safe for fee-on-transfer tokens.
         uint256 balanceBefore = stakingToken.balanceOf(address(this));
         stakingToken.safeTransferFrom(msg.sender, address(this), amount);
-        uint256 received = stakingToken.balanceOf(address(this)) - balanceBefore;
+        uint256 received =
+            stakingToken.balanceOf(address(this)) - balanceBefore;
         if (received == 0) revert ZeroAmount();
 
         positionId = nextPositionId[msg.sender]++;
-        uint256 unlockAt = plan.lockDurationSeconds == 0 ? 0 : block.timestamp + plan.lockDurationSeconds;
+        uint256 unlockAt =
+            plan.lockDurationSeconds == 0
+                ? 0
+                : block.timestamp + plan.lockDurationSeconds;
 
         positions[msg.sender][positionId] = StakePosition({
             planId: planId,
@@ -143,12 +183,16 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
         emit Staked(msg.sender, positionId, planId, received, unlockAt);
     }
 
-    function pendingReward(address user, uint256 positionId) public view returns (uint256) {
+    function pendingReward(
+        address user,
+        uint256 positionId
+    ) public view returns (uint256) {
         StakePosition memory pos = positions[user][positionId];
         if (pos.amount == 0) return pos.accruedReward;
         Plan memory plan = plans[pos.planId];
         uint256 elapsed = block.timestamp - pos.lastAccrualTimestamp;
-        uint256 newReward = (pos.amount * plan.rewardRateBps * elapsed) / (10_000 * 365 days);
+        uint256 newReward =
+            (pos.amount * plan.rewardRateBps * elapsed) / (10_000 * 365 days);
         return pos.accruedReward + newReward;
     }
 
@@ -181,7 +225,8 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
         _accrue(msg.sender, positionId);
         uint256 amount = pos.amount;
         uint256 totalReward = pos.accruedReward;
-        uint256 payableReward = totalReward > rewardReserve ? rewardReserve : totalReward;
+        uint256 payableReward =
+            totalReward > rewardReserve ? rewardReserve : totalReward;
         uint256 remainder = totalReward - payableReward;
 
         pos.amount = 0;
@@ -191,7 +236,8 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
         if (payableReward > 0) rewardReserve -= payableReward;
 
         stakingToken.safeTransfer(msg.sender, amount);
-        if (payableReward > 0) rewardToken.safeTransfer(msg.sender, payableReward);
+        if (payableReward > 0)
+            rewardToken.safeTransfer(msg.sender, payableReward);
 
         emit Unstaked(msg.sender, positionId, amount, payableReward);
     }
