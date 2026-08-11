@@ -1,16 +1,6 @@
-# Written against ingress-nginx + cert-manager, the most common combo and
-# available on any cluster (managed or self-hosted), swap the
-# ingressClassName and cert-manager annotation for your cluster's
-# equivalents if different (e.g. AWS ALB, GKE's native Ingress).
-#
-# This is the only manifest in this directory that exposes anything
-# outside the cluster. Every other Service in infrastructure/k8s is
-# ClusterIP-only, and there is exactly one Ingress, pointed at exactly one
-# Service (frontend), the same "one public door" shape as
-# infrastructure/nginx/frontend.nginx.conf in the Docker Compose setup.
-# The frontend's own nginx handles the /api/ split internally (proxying to
-# the "backend" Service's in-cluster DNS name), so this Ingress only ever
-# needs a single rule.
+# Written against ingress-nginx + cert-manager; swap for your cluster's
+# equivalents if different. The only manifest exposing anything outside
+# the cluster; the frontend's nginx handles the /api/ split internally.
 
 apiVersion: networking.k8s.io/v1
 kind: Ingress

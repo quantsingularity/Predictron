@@ -15,9 +15,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          # Built with VITE_* values baked in at image build time (see
-          # .github/workflows/docker-publish.yml), there's no runtime env
-          # to inject here, unlike the backend.
+          # VITE_* values are baked in at image build time.
           image: ghcr.io/OWNER/predictron-frontend:latest
           ports:
             - containerPort: 80

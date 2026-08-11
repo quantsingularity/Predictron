@@ -1,11 +1,8 @@
 const PRE_LOCK_PATH =
   "M20,150 C70,120 110,175 160,140 C200,112 240,160 300,140";
 
-/// The one visual this page is built around: a round's actual mechanic,
-/// not a decorative chart. A price line ticks toward the lock line, then
-/// splits into the two outcomes the contract itself resolves between.
-/// Everything here corresponds to a real field on PredictionGame.sol's
-/// Round struct: lockPrice, closePrice, totalUpAmount, totalDownAmount.
+/// A price line ticks toward the lock point, then splits into the Up
+/// and Down outcomes, the actual mechanic PredictionGame.sol resolves.
 export function RoundGlyph() {
   return (
     <svg

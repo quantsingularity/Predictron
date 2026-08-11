@@ -5,9 +5,7 @@ import pandas as pd
 from fastapi import APIRouter, HTTPException
 from schemas import PriceDirectionRequest, PriceDirectionResponse
 
-# The model class lives in ../model_training/price_direction, import it
-# directly rather than duplicating the feature/model code here, so
-# training and serving always agree on exactly one implementation.
+# Import the model class directly rather than duplicating it here.
 MODEL_TRAINING_DIR = (
     Path(__file__).resolve().parents[2] / "model_training" / "price_direction"
 )
@@ -35,10 +33,7 @@ def _get_model() -> PriceDirectionModel | None:
 def predict_price_direction(request: PriceDirectionRequest) -> PriceDirectionResponse:
     model = _get_model()
     if model is None:
-        # No trained artifact yet. This is a normal, expected state for a
-        # fresh deployment, the backend treats a non-200 here as "no
-        # signal available" and simply hides the AI badge, never as an
-        # error condition that affects round settlement.
+        # No trained artifact yet, a normal state for a fresh deployment.
         raise HTTPException(
             status_code=503,
             detail="Model artifact not available yet, run model_training/price_direction/train.py",

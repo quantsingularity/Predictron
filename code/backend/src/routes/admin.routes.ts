@@ -4,15 +4,8 @@ import { prisma } from "../lib/prisma.js";
 
 export const adminRouter = Router();
 
-// Every route in this file is gated by BOTH requireAuth (valid session)
-// AND requireAdmin (role === 'ADMIN', re-checked against the DB on every
-// request).
-//
-// Notice there is no "approve withdrawal" route here. Withdrawals aren't a
-// database row an admin flips to "approved", they're the user calling
-// StakingVault.unstake() or PredictionGame.claim() with their own wallet.
-// There is nothing for an admin (or an attacker impersonating one) to
-// approve, because there is no custodial queue.
+// Every route requires both requireAuth and requireAdmin. No "approve
+// withdrawal" route exists; withdrawals are the user's own transaction.
 adminRouter.use(requireAuth, requireAdmin);
 
 adminRouter.get("/users", async (req, res, next) => {
@@ -77,10 +70,7 @@ adminRouter.get("/tickets", async (_req, res, next) => {
   }
 });
 
-/// Promoting a user to ADMIN is itself an admin-only, audited action.
-/// Nothing in this codebase can self-assign the ADMIN role. In production,
-/// seed the first admin via a one-off migration/script run against the DB
-/// directly, not an API route.
+/// No route grants ADMIN; see scripts/seed-admin.sh.
 adminRouter.post("/tickets/:id/close", async (req, res, next) => {
   try {
     const ticket = await prisma.ticket.update({

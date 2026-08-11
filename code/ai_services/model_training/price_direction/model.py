@@ -1,13 +1,4 @@
-"""
-A deliberately simple, well-calibrated model over a fancy one.
-
-Gradient-boosted trees on hand-engineered features rather than a deep
-sequence model: at 5-minute-candle horizons the signal-to-noise ratio is
-low, the dataset is modest, and, since this output is only ever shown as
-an advisory probability next to the real settlement price, a model whose
-probabilities are actually well-calibrated matters more than a marginal
-accuracy gain from a heavier architecture.
-"""
+"""Gradient-boosted, calibrated binary classifier for next-candle direction."""
 
 from __future__ import annotations
 
@@ -60,8 +51,6 @@ class PriceDirectionModel:
             subsample=0.8,
             random_state=42,
         )
-        # Calibrate so predict_proba outputs are trustworthy probabilities,
-        # not just a monotonic ranking score.
         calibrated = CalibratedClassifierCV(base, method="isotonic", cv=3)
         calibrated.fit(X_train, y_train)
         self._pipeline = calibrated

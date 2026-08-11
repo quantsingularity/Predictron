@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Starts the full stack for local development: Postgres in Docker, and
-# the backend/frontend/AI service running natively with hot reload
-# (faster iteration than rebuilding Docker images on every change, the
-# Dockerfiles under infrastructure/docker are for the "prod" profile, see
-# infrastructure/README.md).
+# Starts Postgres in Docker plus backend/frontend/AI natively, hot reload.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 

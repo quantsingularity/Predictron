@@ -24,9 +24,7 @@ def make_candles(n=25):
 
 
 def test_returns_503_when_no_model_artifact_is_present(monkeypatch):
-    # This is the real, un-mocked behavior: no model_training/.../train.py
-    # run has ever produced artifacts/price_direction/model.joblib in this
-    # environment, which is the expected state for a fresh deployment.
+    # Real, un-mocked behavior: no trained artifact exists yet.
     monkeypatch.setattr(price_direction_module, "_model", None)
     monkeypatch.setattr(price_direction_module, "_load_attempted", False)
 

@@ -42,8 +42,7 @@ ticketRouter.get("/", requireAuth, async (req, res, next) => {
 
 const ReplySchema = z.object({ message: z.string().min(1).max(5000) });
 
-/// Ownership is enforced here: the session user must own the ticket, or be
-/// an admin, before any message is returned or appended to it.
+/// The session user must own the ticket, or be an admin.
 ticketRouter.post("/:id/messages", requireAuth, async (req, res, next) => {
   try {
     const { message } = ReplySchema.parse(req.body);

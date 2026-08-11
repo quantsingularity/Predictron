@@ -3,11 +3,8 @@ from schemas import RiskScoreRequest, RiskScoreResponse
 
 router = APIRouter(prefix="/risk", tags=["risk-signals"])
 
-# Deliberately rule-based rather than a trained model: for a small number
-# of well-understood fraud heuristics, explainable rules that an admin can
-# read and immediately understand ("why did this flag?") beat an opaque
-# classifier, and this endpoint's whole job is to help a human decide
-# where to look, not to make the decision itself.
+# Rule-based, not a trained model: explainable heuristics an admin can
+# read directly.
 
 
 @router.post("/withdrawal-score", response_model=RiskScoreResponse)

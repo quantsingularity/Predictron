@@ -9,14 +9,8 @@ import Leaderboard from "./pages/Leaderboard";
 import Referrals from "./pages/Referrals";
 import Admin from "./pages/Admin";
 
-// "/" is the public homepage, connecting a wallet and signing the SIWE
-// message both happen from there (or from the header on any dashboard
-// page). Everything under /dashboard is wrapped in RequireAuth, which
-// redirects back to "/" if there's no valid session. There's no separate
-// /login route and no /signup flow: the first time an address signs a
-// SIWE message, the backend creates its user row on the spot (see
-// code/backend/src/services/siwe.service.ts), sign-in and sign-up are the
-// same wallet action.
+// Everything under /dashboard is wrapped in RequireAuth. No separate
+// /login or /signup route: the first SIWE signature creates the account.
 export default function App() {
   return (
     <BrowserRouter>

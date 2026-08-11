@@ -7,10 +7,7 @@ import { env } from "../config/env.js";
 
 export const stakingRouter = Router();
 
-/// Everything here is read-only. Staking/unstaking themselves happen when
-/// the user's own wallet calls StakingVault.stake()/unstake() directly.
-/// There is intentionally no `POST /stake` route on this backend, because
-/// this backend cannot move the user's tokens and should not pretend to.
+/// Read-only; staking/unstaking happen via the user's own wallet.
 stakingRouter.get("/positions", requireAuth, async (req, res, next) => {
   try {
     const positions = await prisma.indexedStake.findMany({
@@ -18,8 +15,7 @@ stakingRouter.get("/positions", requireAuth, async (req, res, next) => {
       orderBy: { createdAt: "desc" },
     });
 
-    // Enrich ACTIVE positions with live accrued reward straight from the
-    // contract, so the UI never shows stale numbers between indexer ticks.
+    // Enrich with live accrued reward straight from the contract.
     const enriched = await Promise.all(
       positions.map(async (p) => {
         if (p.status !== "ACTIVE")

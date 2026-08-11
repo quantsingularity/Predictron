@@ -8,11 +8,7 @@ import {Ownable2Step, Ownable} from "@openzeppelin/contracts/access/Ownable2Step
 import {ReferralRegistry} from "./ReferralRegistry.sol";
 
 /// @title PredictionGame
-/// @notice Round-based up/down price prediction with bets escrowed
-/// entirely on-chain. The backend can render a Live/Next/Prev
-/// round UI by reading `Round`/`Bet` events, it never decides who
-/// won or who gets paid; the contract does, from the Chainlink
-/// price recorded at lock and close.
+/// @notice Round-based up/down price prediction, settled from a Chainlink price feed.
 contract PredictionGame is ReentrancyGuard, Pausable, Ownable2Step {
     AggregatorV3Interface public immutable priceFeed;
     ReferralRegistry public immutable referralRegistry;
@@ -21,12 +17,8 @@ contract PredictionGame is ReentrancyGuard, Pausable, Ownable2Step {
     uint256 public treasuryFeeBps = 300; // 3% house fee, owner-adjustable, capped below
     uint256 public constant MAX_FEE_BPS = 1000; // hard cap: owner can never set fee above 10%
 
-    /// @notice Share of the house fee (not of the payout) routed to a
-    /// winner's referrer, if one is registered. Owner-adjustable,
-    /// capped below, and paid out of the fee itself, it never
-    /// increases what a winner pays or decreases their payout.
-    uint256 public referralShareBps = 2000; // 20% of the fee, i.e. 0.6% of a winning payout at the default 3% fee
-    uint256 public constant MAX_REFERRAL_SHARE_BPS = 5000; // owner can never route more than half the fee away from treasury
+    uint256 public referralShareBps = 2000; // 20% of the fee, paid out of the fee itself
+    uint256 public constant MAX_REFERRAL_SHARE_BPS = 5000;
 
     enum Position {
         Down,
@@ -58,13 +50,8 @@ contract PredictionGame is ReentrancyGuard, Pausable, Ownable2Step {
     mapping(uint256 => mapping(address => Bet)) public bets; // epoch => user => bet
     uint256 public treasuryBalance;
 
-    /// @notice Referral rewards accrue here (pull-payment) rather than
-    /// being pushed inline during claim(). Pushing an external
-    /// call to an arbitrary referrer address inside claim() would
-    /// let a referrer with a reverting fallback grief every user
-    /// they referred out of their own winnings; accruing instead
-    /// and letting the referrer withdraw separately removes that
-    /// attack surface entirely.
+    // Pull-payment: a referrer withdraws separately via claimReferralReward(),
+    // so a reverting referrer can never block a referred user's own claim().
     mapping(address => uint256) public pendingReferralReward;
 
     event RoundStarted(uint256 indexed epoch, uint256 startTimestamp, uint256 lockTimestamp, uint256 closeTimestamp);
@@ -107,19 +94,10 @@ contract PredictionGame is ReentrancyGuard, Pausable, Ownable2Step {
         roundDurationSeconds = _roundDurationSeconds;
     }
 
-    // ---------------------------------------------------------------------
-    // Round lifecycle, permissionless "keeper" pattern: anyone (typically
-    // the backend's cron job, but trustlessly, it gets no special power)
-    // can call these once the time window is right. The contract enforces
-    // timing and price sourcing itself.
-    // ---------------------------------------------------------------------
+    // -- Round lifecycle (permissionless keeper pattern) --
 
-    /// @notice Start the next round. Reverts if the current round hasn't
-    /// been locked/closed/cancelled yet, which both keeps exactly
-    /// one round live at a time (matching the Live/Next/Prev UI
-    /// model) and means this can't be spammed to fragment epochs,
-    /// starting round N+1 is itself gated on round N having
-    /// already passed its own closeTimestamp check.
+    /// @notice Reverts unless the current round is locked/closed/cancelled,
+    /// which keeps exactly one round live and prevents epoch-spam.
     function startRound() external whenNotPaused returns (uint256 epoch) {
         if (currentEpoch != 0) {
             Round storage prev = rounds[currentEpoch];
@@ -158,9 +136,7 @@ contract PredictionGame is ReentrancyGuard, Pausable, Ownable2Step {
         if (block.timestamp < r.closeTimestamp) revert TooEarly();
         if (r.closePriceSet || r.cancelled) return;
         if (!r.lockPriceSet) {
-            // Lock never happened (e.g. no one called lockRound in time).
-            // Cancel so bettors can reclaim their stake instead of losing it
-            // to an undefined outcome.
+            // Lock never happened; cancel so bettors can reclaim their stake.
             r.cancelled = true;
             emit RoundCancelled(epoch);
             return;
@@ -177,9 +153,7 @@ contract PredictionGame is ReentrancyGuard, Pausable, Ownable2Step {
         return answer;
     }
 
-    // ---------------------------------------------------------------------
-    // Betting
-    // ---------------------------------------------------------------------
+    // -- Betting --
 
     function bet(uint256 epoch, Position position) external payable nonReentrant whenNotPaused {
         Round storage r = rounds[epoch];
@@ -196,11 +170,7 @@ contract PredictionGame is ReentrancyGuard, Pausable, Ownable2Step {
         emit BetPlaced(msg.sender, epoch, position, msg.value);
     }
 
-    /// @notice Pull-payment claim, winners (or everyone, if the round was
-    /// cancelled) withdraw their own payout. Nothing is pushed to users by
-    /// an admin action, so there's no "approve withdrawal" trust step. If
-    /// the caller has a registered referrer, a slice of the house fee
-    /// (never of the payout) accrues to that referrer's pending balance.
+    /// @notice Pull-payment claim. Winners (or everyone, if cancelled) withdraw their own payout.
     function claim(uint256 epoch) external nonReentrant {
         Round storage r = rounds[epoch];
         Bet storage b = bets[epoch][msg.sender];
@@ -246,9 +216,7 @@ contract PredictionGame is ReentrancyGuard, Pausable, Ownable2Step {
         emit Claimed(msg.sender, epoch, payout);
     }
 
-    /// @notice Withdraw accrued referral rewards. Separate from claim() so
-    /// a referrer's own withdrawal behavior can never affect a
-    /// referred user's ability to collect their winnings.
+    /// @notice Withdraw accrued referral rewards, separate from claim().
     function claimReferralReward() external nonReentrant {
         uint256 amount = pendingReferralReward[msg.sender];
         if (amount == 0) revert NothingToClaim();
@@ -258,11 +226,7 @@ contract PredictionGame is ReentrancyGuard, Pausable, Ownable2Step {
         emit ReferralRewardClaimed(msg.sender, amount);
     }
 
-    // ---------------------------------------------------------------------
-    // Admin, parameters and the house fee only. Owner can never touch a
-    // user's bet or force a claim's outcome; it's derived purely from the
-    // oracle price recorded at lock/close.
-    // ---------------------------------------------------------------------
+    // -- Admin --
 
     function setTreasuryFeeBps(uint256 bps) external onlyOwner {
         if (bps > MAX_FEE_BPS) revert FeeTooHigh();

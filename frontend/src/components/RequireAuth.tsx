@@ -1,12 +1,8 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useCurrentUser } from "../hooks/useCurrentUser";
 
-/// Wraps every /dashboard/* route. There's no local token to check first.
-/// The session lives in an httpOnly cookie, so this always asks
-/// /api/auth/me and redirects home on anything but a confirmed session.
-/// This is a UX nicety only; the real enforcement for anything sensitive
-/// (like the admin routes) happens server-side regardless of what this
-/// component does.
+/// Wraps /dashboard/* routes; asks /api/auth/me and redirects home if
+/// unauthenticated. UX only, the backend enforces this too.
 export function RequireAuth() {
   const { data: me, isLoading, isError } = useCurrentUser();
 

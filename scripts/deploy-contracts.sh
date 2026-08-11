@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Deploys StakingVault + ReferralRegistry + PredictionGame and writes the
-# resulting addresses into code/backend/.env and frontend/.env
-# automatically, removing the copy-paste step where an address gets
-# fat-fingered between a terminal and two separate env files.
-#
+# Deploys the contracts and writes the addresses into both .env files.
 # Usage: scripts/deploy-contracts.sh [network]   (default: bscTestnet)
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -49,8 +45,5 @@ echo "  StakingVault:      $VAULT_ADDR"
 echo "  ReferralRegistry:  $REGISTRY_ADDR"
 echo "  PredictionGame:    $GAME_ADDR"
 echo
-echo "One thing this script can't fill in for you: STAKING_VAULT_DEPLOY_BLOCK"
-echo "and PREDICTION_GAME_DEPLOY_BLOCK in code/backend/.env still need the"
-echo "actual deployment block numbers, or the indexer will scan from genesis."
-echo "Check the deploy transaction receipts on a block explorer and set those"
-echo "two values by hand."
+echo "Set STAKING_VAULT_DEPLOY_BLOCK and PREDICTION_GAME_DEPLOY_BLOCK in"
+echo "code/backend/.env by hand (from the deploy tx receipts)."

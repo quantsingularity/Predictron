@@ -1,13 +1,6 @@
-// Prisma schema for the Predictron backend.
-//
-// Design note: this database is a READ CACHE of on-chain events plus
-// off-chain-only concerns (profile metadata, referral attribution, support
-// tickets, admin roles). It is never the source of truth for a balance.
-// StakingVault.sol and PredictionGame.sol are. If this DB were wiped, a
-// full re-index from chain would reconstruct every stake, bet, and payout;
-// it would NOT be possible to forge a balance by writing to this DB, because
-// nothing reads balances from here to authorize a withdrawal, withdrawals
-// happen contract-side, signed by the user's own wallet.
+// This database is a read cache of on-chain events plus off-chain-only
+// concerns (profile metadata, referral attribution, tickets, admin roles).
+// It is never the source of truth for a balance.
 
 generator client {
   provider = "prisma-client-js"
@@ -42,8 +35,7 @@ model User {
   @@index([referredById])
 }
 
-/// One row per SIWE login nonce. Consumed (deleted) on successful verify to
-/// prevent replay; expired ones are swept by a periodic job.
+/// One row per SIWE login nonce, deleted on successful verify.
 model AuthNonce {
   id          String   @id @default(cuid())
   userAddress String
@@ -54,9 +46,7 @@ model AuthNonce {
   @@index([userAddress])
 }
 
-/// Mirrors StakingVault.Staked / Unstaked events. Populated only by the
-/// indexer job reading contract logs, never written to from a user-facing
-/// route.
+/// Mirrors StakingVault.Staked / Unstaked events.
 model IndexedStake {
   id              String    @id @default(cuid())
   userId          String
@@ -93,11 +83,7 @@ model IndexedBet {
 }
 
 /// Mirrors PredictionGame's ReferralRewardAccrued / ReferralRewardClaimed
-/// events. One row per accrual (one per winning claim by a referred user),
-/// so a referrer's total is the sum of their rows, not a single mutable
-/// balance. The actual token transfer happens on-chain when the referrer
-/// calls claimReferralReward() themselves, this table is a read cache of
-/// that history, never a payable balance the backend could alter.
+/// events. One row per accrual; a referrer's total is the sum of their rows.
 model ReferralPayout {
   id             String   @id @default(cuid())
   userId         String // the referrer who earns this reward
@@ -137,8 +123,7 @@ model TicketMessage {
   @@index([ticketId])
 }
 
-/// Tracks the last block processed per contract so the indexer can resume
-/// safely after a restart without re-scanning from genesis or missing a gap.
+/// Tracks the last block processed per contract, for indexer resume.
 model IndexerCursor {
   contractAddress String   @id
   lastBlock       BigInt

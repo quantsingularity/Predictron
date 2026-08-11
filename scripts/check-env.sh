@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# The backend already fails fast at boot if its own env vars are invalid
-# (code/backend/src/config/env.ts). This does the same check one level
-# earlier, before a process even starts, across every package that needs
-# a .env, so a missing file produces one clear message instead of a
-# half-started dev.sh run.
+# Checks every package's .env exists before dev.sh half-starts.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 missing=0

@@ -10,10 +10,8 @@ export class HttpError extends Error {
   }
 }
 
-// Centralized error handling: known errors (HttpError) return their own
-// status and a safe message; anything unexpected is logged server-side in
-// full and reduced to a generic 500 for the client. The raw error object
-// (stack trace, driver internals, etc.) is never serialized into a response.
+// Known errors (HttpError) return their own status/message; anything
+// unexpected is logged in full but reduced to a generic 500 for the client.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function errorHandler(
   err: unknown,

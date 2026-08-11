@@ -5,9 +5,7 @@ import { prisma } from "../lib/prisma.js";
 import { env } from "../config/env.js";
 import { HttpError } from "../middleware/errorHandler.middleware.js";
 
-/// Step 1 of login: issue a single-use nonce tied to the claimed address,
-/// with a short expiry, per the SIWE spec. A fresh nonce per attempt means
-/// a captured signature can never be replayed against a later request.
+/// Step 1 of login: issue a single-use, short-lived nonce (SIWE spec).
 export async function issueNonce(address: string): Promise<string> {
   const nonce = generateNonce();
   await prisma.authNonce.create({
@@ -24,12 +22,8 @@ function makeReferralCode(): string {
   return randomBytes(4).toString("hex");
 }
 
-/// Step 2 of login: verify the signed SIWE message, consume the nonce,
-/// find-or-create the user, and issue a short-lived session JWT. The JWT
-/// only ever authorizes reading/writing this backend's own off-chain data
-/// (profile, tickets, referral display), it has no on-chain power
-/// whatsoever. Every fund-moving action is still a transaction the user
-/// signs directly with their own wallet against the contracts.
+/// Step 2 of login: verify the signature, consume the nonce, find or
+/// create the user, and issue a session JWT (off-chain data only).
 export async function verifySiweAndCreateSession(
   message: string,
   signature: string,
@@ -58,7 +52,7 @@ export async function verifySiweAndCreateSession(
   ) {
     throw new HttpError(401, "Nonce invalid, expired, or already used");
   }
-  // Single-use: delete immediately so the same signed message can never be replayed.
+  // Delete immediately so it can't be replayed.
   await prisma.authNonce.delete({ where: { nonce } });
 
   let user = await prisma.user.findUnique({ where: { address } });

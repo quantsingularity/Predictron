@@ -34,11 +34,7 @@ async function findOrCreateUserByAddress(address: string) {
   });
 }
 
-/// The single source of truth for "did this deposit/stake really happen":
-/// a `Staked` event actually emitted by StakingVault.sol in a mined,
-/// sufficiently-confirmed block. There is no code path anywhere in this
-/// backend that credits a stake from client-supplied JSON, if it isn't in
-/// a contract event log behind CONFIRMATION_BLOCKS, it didn't happen.
+/// Credits a stake only from a confirmed `Staked` event, never client input.
 export async function indexStakingVault(): Promise<void> {
   const address = env.STAKING_VAULT_ADDRESS as `0x${string}`;
   const safeTip = await safeChainTip();
@@ -113,10 +109,6 @@ export async function indexStakingVault(): Promise<void> {
           data: {
             status: "UNSTAKED",
             unstakeTxHash: log.transactionHash,
-            // Under exactOptionalPropertyTypes, an explicitly-present key
-            // with value `undefined` is a different (rejected) type from
-            // the key being absent, so this field is only included in
-            // the update at all when the event actually carried a value.
             ...(rewardPaid !== undefined
               ? { rewardPaid: rewardPaid.toString() }
               : {}),
@@ -216,10 +208,8 @@ export async function indexPredictionGame(): Promise<void> {
       }
     }
 
-    // Referral rewards: an accrual is created once per winning claim by a
-    // referred user; a claim event stamps every still-ACCRUED row for that
-    // referrer as CLAIMED (see the schema comment for why claimTxHash is
-    // shared across rows rather than one-to-one).
+    // One ACCRUED row per winning claim; a claim event stamps all of a
+    // referrer's ACCRUED rows as CLAIMED at once.
     for (const log of referralAccruedLogs) {
       const { referrer, referredUser, epoch, amount } = log.args;
       if (
@@ -259,11 +249,7 @@ export async function indexPredictionGame(): Promise<void> {
   }
 }
 
-/// The highest block we're willing to index right now: chain head minus a
-/// confirmation buffer. Indexing straight to the head means a shallow
-/// reorg could drop a block whose events we'd already written, staying
-/// this many blocks behind means by the time we index a block, it's very
-/// unlikely to ever disappear.
+/// Chain head minus a confirmation buffer, to absorb shallow reorgs.
 async function safeChainTip(): Promise<bigint> {
   const latest = await publicClient.getBlockNumber();
   const confirmations = BigInt(env.INDEXER_CONFIRMATION_BLOCKS);

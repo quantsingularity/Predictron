@@ -2,11 +2,7 @@
 pragma solidity ^0.8.24;
 
 /// @title ReferralRegistry
-/// @notice Minimal on-chain referral graph: a user may record who referred
-/// them, exactly once. PredictionGame reads this at claim time to
-/// route a share of its own house fee directly to the referrer. This
-/// registry itself never holds or moves a single token, it
-/// only ever answers "who referred this address?".
+/// @notice Minimal on-chain referral graph: who referred whom.
 contract ReferralRegistry {
     mapping(address => address) public referrerOf;
 
@@ -16,9 +12,7 @@ contract ReferralRegistry {
     error SelfReferral();
     error ZeroAddress();
 
-    /// @notice Record `referrer` as the caller's referrer. Callable once
-    /// per address and irreversible by design, so a referral can't
-    /// be reassigned later to redirect another referrer's reward.
+    /// @notice Set once per address, irreversible.
     function setReferrer(address referrer) external {
         if (referrer == address(0)) revert ZeroAddress();
         if (referrer == msg.sender) revert SelfReferral();

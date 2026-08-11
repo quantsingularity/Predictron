@@ -1,9 +1,7 @@
 import { ethers } from "hardhat";
 
-/// Local-dev only. Deploys a mock BUSD and a mock Chainlink feed, then
-/// prints the exact env vars deploy.ts needs to deploy real contracts
-/// against them, instead of the mainnet addresses deploy.ts defaults to
-/// (which have no code on a plain, non-forked local Hardhat node).
+/// Local-dev only. Deploys a mock BUSD and mock Chainlink feed, then
+/// prints the env vars deploy.ts needs to use them.
 async function main() {
   const Token = await ethers.getContractFactory("MockERC20");
   const token = await Token.deploy("Mock BUSD", "mBUSD");

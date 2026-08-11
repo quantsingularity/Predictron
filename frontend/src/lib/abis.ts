@@ -1,7 +1,5 @@
-// Same contracts as backend/src/lib/abis.ts, but this copy also includes
-// the state-changing functions, because here, unlike the backend, it's
-// correct for the ABI to include write functions: the *user's own wallet*
-// is what will sign and submit them.
+// Same contracts as backend/src/lib/abis.ts, plus write functions, since
+// here the user's own wallet signs and submits them.
 
 export const erc20Abi = [
   {

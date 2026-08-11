@@ -22,8 +22,6 @@ import { aiRouter } from "./routes/ai.routes.js";
 export function createApp() {
   const app = express();
 
-  // CORS is locked to the configured frontend origin only, never a
-  // wildcard, since requests carry credentials (the session cookie).
   app.use(helmet());
   app.use(cookieParser());
   app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
@@ -42,10 +40,7 @@ export function createApp() {
   app.use("/api/admin", apiRateLimit, adminRouter);
   app.use("/api/ai", apiRateLimit, aiRouter);
 
-  // Deliberately no webhook routes. Balance-affecting facts come only from
-  // the chain indexer reading contract event logs (see
-  // services/indexer.service.ts), there is nothing here for an
-  // unauthenticated POST to forge.
+  // No webhook routes: balance facts come only from the chain indexer.
 
   app.use((req, res) => {
     res.status(404).json({ success: false, message: "Not found" });

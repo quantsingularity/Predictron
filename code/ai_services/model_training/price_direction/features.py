@@ -1,11 +1,4 @@
-"""
-Feature engineering for the short-horizon price-direction model.
-
-Takes a window of recent OHLCV candles and derives a small set of
-stationary, scale-independent features, raw price levels are deliberately
-excluded so the model generalizes across price regimes instead of
-memorizing "BNB was around $600 in this training set."
-"""
+"""Stationary, scale-independent feature engineering for OHLCV candles."""
 
 from __future__ import annotations
 
@@ -14,15 +7,8 @@ import pandas as pd
 
 
 def compute_features(candles: pd.DataFrame) -> pd.DataFrame:
-    """
-    candles: DataFrame with columns [open, high, low, close, volume],
-    indexed by time ascending, at a fixed interval matching the prediction
-    round length (e.g. 5-minute candles for 5-minute rounds).
-
-    Returns a DataFrame of engineered features, one row per input row
-    (rows near the start will contain NaNs from rolling windows and should
-    be dropped by the caller before training/inference).
-    """
+    """candles: OHLCV DataFrame indexed by time. Returns engineered features
+    (leading rows may contain NaNs from rolling windows)."""
     df = candles.copy()
 
     df["log_return_1"] = np.log(df["close"] / df["close"].shift(1))

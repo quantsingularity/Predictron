@@ -8,21 +8,14 @@ import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 import {Ownable2Step, Ownable} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 
 /// @title StakingVault
-/// @notice Fully non-custodial staking. Users stake an ERC20 token (e.g.
-/// BUSD) directly into this contract and withdraw from it directly, no
-/// backend, admin panel, or private key is ever in the path of user
-/// funds. The backend only *reads* the events this contract emits; it
-/// cannot move funds.
-/// @dev Rewards accrue continuously per-second using an accumulator pattern
-/// (like MasterChef / Synthetix StakingRewards) to avoid unbounded
-/// gas loops over stakers.
+/// @notice Non-custodial staking vault. Rewards accrue per-second via an accumulator pattern.
 contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
     using SafeERC20 for IERC20;
 
     struct Plan {
         uint256 id;
         uint256 lockDurationSeconds; // 0 = flexible, no lock
-        uint256 rewardRateBps; // annualized reward rate, in basis points (10000 = 100%)
+        uint256 rewardRateBps; // annualized, basis points
         bool active;
     }
 
@@ -31,30 +24,21 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
         uint256 amount;
         uint256 startTimestamp;
         uint256 unlockTimestamp;
-        uint256 rewardDebt; // amount of reward already accounted for at last update
-        uint256 accruedReward; // claimable reward accumulated so far
+        uint256 rewardDebt;
+        uint256 accruedReward;
         uint256 lastAccrualTimestamp;
     }
 
     IERC20 public immutable stakingToken;
-
-    /// @notice reward token can be the same as stakingToken or a separate
-    /// governance/reward token, kept as its own address for flexibility.
     IERC20 public immutable rewardToken;
 
     uint256 public nextPlanId = 1;
     mapping(uint256 => Plan) public plans;
 
-    /// @notice user => positionId => position. A user may hold multiple
-    /// concurrent positions (e.g. one per plan, or repeated stakes).
     mapping(address => mapping(uint256 => StakePosition)) public positions;
     mapping(address => uint256) public nextPositionId;
 
     uint256 public totalStaked;
-
-    /// @notice funds set aside by the owner to pay rewards; prevents the
-    /// contract from promising rewards it cannot pay. Must be topped up via
-    /// fundRewards() before plans can accrue meaningfully.
     uint256 public rewardReserve;
 
     event PlanCreated(uint256 indexed planId, uint256 lockDurationSeconds, uint256 rewardRateBps);
@@ -86,11 +70,7 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
         rewardToken = IERC20(_rewardToken);
     }
 
-    // ---------------------------------------------------------------------
-    // Admin (owner) actions, parameter changes only, never a path that can
-    // move a *user's* staked funds. Recommend the deployer set `initialOwner`
-    // to a Gnosis Safe / timelock rather than a single EOA in production.
-    // ---------------------------------------------------------------------
+    // -- Admin --
 
     function createPlan(
         uint256 lockDurationSeconds,
@@ -119,9 +99,6 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
         _unpause();
     }
 
-    /// @notice Anyone can top up the reward reserve (typically the protocol
-    /// treasury). This is the only way reward tokens enter the contract,
-    /// there is no owner-only "mint reward" backdoor.
     function fundRewards(uint256 amount) external {
         if (amount == 0) revert ZeroAmount();
         rewardToken.safeTransferFrom(msg.sender, address(this), amount);
@@ -129,31 +106,21 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
         emit RewardsFunded(msg.sender, amount);
     }
 
-    /// @notice Recover a token accidentally sent directly to this contract
-    /// (i.e. not via stake() or fundRewards()). Explicitly cannot
-    /// touch stakingToken or rewardToken, so it can never be used
-    /// to pull out user principal or the reward reserve, only an
-    /// unrelated token balance sitting here by mistake.
+    /// @notice Recover a foreign token sent here by mistake. Cannot touch stakingToken/rewardToken.
     function recoverForeignToken(address token, address to, uint256 amount) external onlyOwner {
         if (token == address(stakingToken) || token == address(rewardToken)) revert CannotRecoverVaultToken();
         if (to == address(0)) revert ZeroAddress();
         IERC20(token).safeTransfer(to, amount);
     }
 
-    // ---------------------------------------------------------------------
-    // User actions
-    // ---------------------------------------------------------------------
+    // -- User actions --
 
     function stake(uint256 planId, uint256 amount) external nonReentrant whenNotPaused returns (uint256 positionId) {
         Plan memory plan = plans[planId];
         if (!plan.active) revert PlanNotActive();
         if (amount == 0) revert ZeroAmount();
 
-        // Credit exactly what the contract actually received rather than
-        // the requested `amount`. Identical for a standard ERC20 like
-        // BUSD; this only matters if a fee-on-transfer or rebasing token
-        // is ever configured as the staking token, and guarantees the
-        // vault can never promise more principal than it actually holds.
+        // Credit the actual received amount, safe for fee-on-transfer tokens.
         uint256 balanceBefore = stakingToken.balanceOf(address(this));
         stakingToken.safeTransferFrom(msg.sender, address(this), amount);
         uint256 received = stakingToken.balanceOf(address(this)) - balanceBefore;
@@ -181,7 +148,6 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
         if (pos.amount == 0) return pos.accruedReward;
         Plan memory plan = plans[pos.planId];
         uint256 elapsed = block.timestamp - pos.lastAccrualTimestamp;
-        // amount * rateBps/10000 * elapsed/365days
         uint256 newReward = (pos.amount * plan.rewardRateBps * elapsed) / (10_000 * 365 days);
         return pos.accruedReward + newReward;
     }
@@ -192,7 +158,6 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
         pos.lastAccrualTimestamp = block.timestamp;
     }
 
-    /// @notice Claim accrued reward without unstaking principal.
     function claimReward(uint256 positionId) external nonReentrant {
         _accrue(msg.sender, positionId);
         StakePosition storage pos = positions[msg.sender][positionId];
@@ -206,13 +171,6 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
         emit RewardClaimed(msg.sender, positionId, reward);
     }
 
-    /// @notice Withdraw principal (+ any accrued reward) once unlocked.
-    /// @dev Principal withdrawal is never blocked by an empty reward
-    /// reserve: if the reserve can't cover the full accrued reward,
-    /// this pays out whatever is available now and keeps the
-    /// unpaid remainder as a claimable balance on the (now
-    /// zero-amount) position, so it isn't lost, it's paid the next
-    /// time claimReward() is called after the reserve is topped up.
     function unstake(uint256 positionId) external nonReentrant {
         StakePosition storage pos = positions[msg.sender][positionId];
         if (pos.amount == 0) revert NothingStaked();
@@ -227,9 +185,7 @@ contract StakingVault is ReentrancyGuard, Pausable, Ownable2Step {
         uint256 remainder = totalReward - payableReward;
 
         pos.amount = 0;
-        // Any shortfall stays on the position as a still-claimable balance
-        // rather than being wiped, so a later fundRewards() top-up plus a
-        // claimReward() call will still make the staker whole.
+        // Any shortfall stays claimable, paid once the reserve is topped up.
         pos.accruedReward = remainder;
         totalStaked -= amount;
         if (payableReward > 0) rewardReserve -= payableReward;

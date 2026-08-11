@@ -5,9 +5,7 @@ import { prisma } from "../lib/prisma.js";
 
 export const SESSION_COOKIE_NAME = "predictron_session";
 
-/// Shared cookie options so login (set) and logout (clear) always agree.
-/// A mismatched `secure`/`sameSite` between set and clear is a classic way
-/// to leave a stale cookie the browser won't overwrite.
+/// Shared so login (set) and logout (clear) always use matching options.
 export function sessionCookieOptions() {
   return {
     httpOnly: true,
@@ -32,16 +30,8 @@ declare global {
   }
 }
 
-/// Requires a valid session. Three properties worth calling out:
-/// 1. The session token lives in an httpOnly cookie, never in a JSON
-/// response body or localStorage, client-side JS (and therefore an
-/// XSS payload) can never read it, only send it back automatically.
-/// 2. A missing or malformed cookie is rejected outright, no fallback
-/// path treats an absent token as authenticated.
-/// 3. The user's role is re-read from the database on every request
-/// instead of trusting whatever role was baked into the JWT at login
-/// time, so a role change (promotion, demotion, ban) takes effect
-/// immediately rather than waiting for the session to expire.
+/// Reads the session from an httpOnly cookie and re-reads the role from
+/// the DB on every request, rather than trusting the JWT's own claim.
 export async function requireAuth(
   req: Request,
   res: Response,
@@ -72,9 +62,7 @@ export async function requireAuth(
   next();
 }
 
-/// Applied in addition to requireAuth on every admin route. Every admin
-/// endpoint is gated by both: a valid session AND a database-confirmed
-/// ADMIN role, checked on every request.
+/// Requires requireAuth to have run first.
 export function requireAdmin(req: Request, res: Response, next: NextFunction) {
   if (req.user?.role !== "ADMIN") {
     return res

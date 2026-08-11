@@ -1,6 +1,4 @@
-// Minimal ABIs: only the events and view functions the backend needs to
-// read. Kept hand-trimmed (rather than importing the full Hardhat artifact)
-// so it's obvious at a glance that nothing here can write.
+// Minimal ABIs: only the events/view functions the backend reads.
 
 export const stakingVaultAbi = [
   {

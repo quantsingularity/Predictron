@@ -1,8 +1,5 @@
-# A self-managed Postgres, suitable for a demo/dev cluster. For a real
-# production deployment, point DATABASE_URL (in 10-secrets) at a managed
-# database (RDS, Cloud SQL, etc.) instead and skip this file entirely.
-# A single-replica StatefulSet with no automated backups isn't something
-# to trust real user data to.
+# Self-managed Postgres for a demo/dev cluster. For production, point
+# DATABASE_URL at a managed database instead and skip this file.
 
 apiVersion: v1
 kind: Service

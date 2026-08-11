@@ -113,8 +113,7 @@ describe("StakingVault", () => {
     await vault.connect(alice).unstake(0);
     const principalBalAfter = await token.balanceOf(alice.address);
 
-    // principal always comes back in full, and only the available reserve
-    // (1 token) was paid out alongside it
+    // principal always comes back in full; only the available reserve (1 token) was paid alongside it
     expect(principalBalAfter - principalBalBefore).to.equal(
       amount + smallReserve,
     );

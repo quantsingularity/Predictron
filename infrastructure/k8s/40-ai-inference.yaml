@@ -1,8 +1,5 @@
-# Deliberately never referenced by 60-ingress.yaml, and no NodePort/
-# LoadBalancer Service either. The only client that ever talks to this is
-# the backend Deployment, over the cluster-internal DNS name
-# "ai-inference" (matches AI_SERVICE_URL in 15-backend-configmap.yaml).
-# There is no path to this service from outside the cluster, full stop.
+# No external exposure; only the backend reaches this, over the
+# cluster-internal DNS name "ai-inference".
 
 apiVersion: apps/v1
 kind: Deployment

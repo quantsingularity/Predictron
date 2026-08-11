@@ -3,10 +3,7 @@ pragma solidity ^0.8.24;
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-/// @notice Test-only ERC20 that burns a fixed basis-point fee on every
-///         transfer, so the recipient always receives less than the
-///         nominal amount. Used to exercise StakingVault.stake()'s
-///         balance-delta accounting.
+/// @notice Test-only ERC20 that burns a fee on every transfer.
 contract FeeOnTransferMockERC20 is ERC20 {
     uint256 public immutable feeBps;
 

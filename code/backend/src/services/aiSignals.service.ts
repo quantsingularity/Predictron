@@ -10,12 +10,8 @@ interface Candle {
   volume: number;
 }
 
-/// Calls the Python inference service for an advisory price-direction
-/// probability. Deliberately fails soft: if the AI service is down, slow,
-/// or hasn't been trained yet, this returns `null` and the frontend simply
-/// omits the AI badge. Nothing downstream of a prediction round's actual
-/// settlement (which reads Chainlink through the contract, not this
-/// function) is allowed to depend on this succeeding.
+/// Calls the Python inference service for an advisory probability.
+/// Fails soft: returns `null` if the service is down or untrained.
 export async function getPriceDirectionSignal(
   candles: Candle[],
 ): Promise<{ probabilityUp: number; modelVersion: string } | null> {

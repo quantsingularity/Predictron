@@ -1,12 +1,7 @@
-"""
-Train the price-direction model from a CSV of historical candles and save
-the artifact to ../../inference_api/artifacts/price_direction/.
+"""Train the price-direction model from a CSV of historical candles.
 
-Usage:
-    python train.py --candles path/to/bnbusdt_5m.csv
-
+Usage: python train.py --candles path/to/bnbusdt_5m.csv
 Expects columns: timestamp, open, high, low, close, volume
-(the standard export shape from most exchange/data-vendor APIs).
 """
 
 from __future__ import annotations

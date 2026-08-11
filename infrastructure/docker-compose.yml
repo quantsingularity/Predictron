@@ -16,10 +16,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-    # Published so a natively-running backend (scripts/dev.sh runs it via
-    # `npm run dev`, outside Docker) can reach it at localhost:5432. The
-    # "prod" profile's backend container still resolves it as `postgres`
-    # over the internal compose network regardless of this host mapping.
+    # Published so a natively-running backend (scripts/dev.sh) can reach it.
     ports:
       - "5432:5432"
 
@@ -32,9 +29,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    # No published host port either, in the "prod" profile. The frontend's
-    # nginx is the only public entry point; it reverse-proxies /api to this
-    # container over the internal docker network (see infrastructure/nginx).
+    # No published host port; nginx reverse-proxies /api to this internally.
     expose:
       - "4000"
     profiles: ["prod"]
@@ -48,9 +43,7 @@ services:
       BACKEND_ORIGIN: "http://backend:4000"
     expose:
       - "8000"
-    # Deliberately no published host port under any profile. This service
-    # is reachable only from the backend container. Point the backend's
-    # AI_SERVICE_URL at http://ai-inference:8000 inside this network.
+    # No published host port; reachable only from the backend container.
     profiles: ["ai", "prod"]
     restart: unless-stopped
 

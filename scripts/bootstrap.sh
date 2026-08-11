@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Installs dependencies for every package in the monorepo. Run once after
-# cloning, or again after pulling changes that touch any package.json or
-# requirements.txt.
+# Installs dependencies for every package in the monorepo.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 

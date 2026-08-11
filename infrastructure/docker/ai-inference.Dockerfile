@@ -1,8 +1,5 @@
-# Build context is the repo root. /app inside this image plays the same
-# role as code/ai_services/ does in the source tree. model_training/ and
-# inference_api/ keep the same relative nesting, which matters because
-# routers/price_direction.py locates the trained model by walking up from
-# its own file path (parents[2] == this "ai_services" root).
+# Build context is the repo root; model_training/ and inference_api/ keep
+# the same relative nesting as in code/ai_services/.
 
 FROM python:3.12-slim
 WORKDIR /app

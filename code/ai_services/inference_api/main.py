@@ -15,8 +15,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Only the internal backend calls this service, lock CORS accordingly
-# rather than defaulting to '*'.
+# Only the internal backend calls this, lock CORS instead of using '*'.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[os.getenv("BACKEND_ORIGIN", "http://localhost:4000")],

@@ -3,9 +3,7 @@ import { erc20Abi, stakingVaultAbi } from "../lib/abis";
 import { STAKING_VAULT_ADDRESS, STAKING_TOKEN_ADDRESS } from "../lib/wagmi";
 
 /// Every function here submits a transaction signed by the connected
-/// wallet via wagmi's useWriteContract, the backend is never in this
-/// call path and could not intercept or redirect the funds even if it
-/// wanted to.
+/// wallet directly; the backend is never in this call path.
 export function useStakingContract() {
   const { address } = useAccount();
   const { writeContractAsync, isPending } = useWriteContract();
