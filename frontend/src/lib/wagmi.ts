@@ -3,7 +3,8 @@ import { bsc } from "wagmi/chains";
 import { injected, walletConnect, coinbaseWallet } from "wagmi/connectors";
 
 const walletConnectProjectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID as
-  string | undefined;
+  | string
+  | undefined;
 
 export const wagmiConfig = createConfig({
   chains: [bsc],

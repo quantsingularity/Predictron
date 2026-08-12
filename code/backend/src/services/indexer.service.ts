@@ -5,7 +5,9 @@ import { prisma } from "../lib/prisma.js";
 import { logger } from "../lib/logger.js";
 import { randomBytes } from "node:crypto";
 
-const MAX_BLOCK_RANGE = 2000n; // stay under most RPC providers' getLogs limits
+const MAX_BLOCK_RANGE = 2000n; // starting point; shrinks automatically per fetchChunk below
+const MIN_BLOCK_RANGE = 25n;
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 async function getCursor(
   contract: string,
@@ -34,35 +36,75 @@ async function findOrCreateUserByAddress(address: string) {
   });
 }
 
+/// Fetches one chunk of logs via `fetchFn(fromBlock, toBlock)`, starting at
+/// `maxRange` blocks wide. Many public RPC endpoints (the free BSC
+/// dataseed nodes in particular) reject eth_getLogs above some
+/// undocumented range or response-size limit that varies by provider, so
+/// on any failure this halves the range and retries rather than failing
+/// the whole indexing run. Returns the results plus the toBlock actually
+/// reached, so the caller advances its cursor only as far as really
+/// succeeded.
+export async function fetchChunk<T>(
+  fromBlock: bigint,
+  safeTip: bigint,
+  maxRange: bigint,
+  fetchFn: (fromBlock: bigint, toBlock: bigint) => Promise<T>,
+): Promise<{ result: T; toBlock: bigint; range: bigint }> {
+  let range = maxRange;
+  for (;;) {
+    const toBlock = fromBlock + range > safeTip ? safeTip : fromBlock + range;
+    try {
+      const result = await fetchFn(fromBlock, toBlock);
+      return { result, toBlock, range };
+    } catch (err) {
+      if (range <= MIN_BLOCK_RANGE) throw err;
+      range = range / 2n > MIN_BLOCK_RANGE ? range / 2n : MIN_BLOCK_RANGE;
+      logger.warn(
+        { err, newRange: range.toString() },
+        "getLogs failed, retrying with a smaller block range",
+      );
+    }
+  }
+}
+
 /// Credits a stake only from a confirmed `Staked` event, never client input.
 export async function indexStakingVault(): Promise<void> {
   const address = env.STAKING_VAULT_ADDRESS as `0x${string}`;
+  if (address === ZERO_ADDRESS) {
+    logger.warn(
+      "STAKING_VAULT_ADDRESS is the zero address, skipping indexing until it's set to a deployed contract",
+    );
+    return;
+  }
   const safeTip = await safeChainTip();
   let fromBlock =
     (await getCursor(address, env.STAKING_VAULT_DEPLOY_BLOCK)) + 1n;
 
+  let range = MAX_BLOCK_RANGE;
   while (fromBlock <= safeTip) {
-    const toBlock =
-      fromBlock + MAX_BLOCK_RANGE > safeTip
-        ? safeTip
-        : fromBlock + MAX_BLOCK_RANGE;
-
-    const [stakedLogs, unstakedLogs] = await Promise.all([
-      publicClient.getContractEvents({
-        address,
-        abi: stakingVaultAbi,
-        eventName: "Staked",
-        fromBlock,
-        toBlock,
-      }),
-      publicClient.getContractEvents({
-        address,
-        abi: stakingVaultAbi,
-        eventName: "Unstaked",
-        fromBlock,
-        toBlock,
-      }),
-    ]);
+    const {
+      result: [stakedLogs, unstakedLogs],
+      toBlock,
+      range: usedRange,
+    } = await fetchChunk(fromBlock, safeTip, range, (from, to) =>
+      Promise.all([
+        publicClient.getContractEvents({
+          address,
+          abi: stakingVaultAbi,
+          eventName: "Staked",
+          fromBlock: from,
+          toBlock: to,
+        }),
+        publicClient.getContractEvents({
+          address,
+          abi: stakingVaultAbi,
+          eventName: "Unstaked",
+          fromBlock: from,
+          toBlock: to,
+        }),
+      ]),
+    );
+    range = usedRange;
 
     for (const log of stakedLogs) {
       const { user, positionId, planId, amount, unlockTimestamp } = log.args;
@@ -125,47 +167,55 @@ export async function indexStakingVault(): Promise<void> {
 
 export async function indexPredictionGame(): Promise<void> {
   const address = env.PREDICTION_GAME_ADDRESS as `0x${string}`;
+  if (address === ZERO_ADDRESS) {
+    logger.warn(
+      "PREDICTION_GAME_ADDRESS is the zero address, skipping indexing until it's set to a deployed contract",
+    );
+    return;
+  }
   const safeTip = await safeChainTip();
   let fromBlock =
     (await getCursor(address, env.PREDICTION_GAME_DEPLOY_BLOCK)) + 1n;
 
+  let range = MAX_BLOCK_RANGE;
   while (fromBlock <= safeTip) {
-    const toBlock =
-      fromBlock + MAX_BLOCK_RANGE > safeTip
-        ? safeTip
-        : fromBlock + MAX_BLOCK_RANGE;
-
-    const [betLogs, claimLogs, referralAccruedLogs, referralClaimedLogs] =
-      await Promise.all([
+    const {
+      result: [betLogs, claimLogs, referralAccruedLogs, referralClaimedLogs],
+      toBlock,
+      range: usedRange,
+    } = await fetchChunk(fromBlock, safeTip, range, (from, to) =>
+      Promise.all([
         publicClient.getContractEvents({
           address,
           abi: predictionGameAbi,
           eventName: "BetPlaced",
-          fromBlock,
-          toBlock,
+          fromBlock: from,
+          toBlock: to,
         }),
         publicClient.getContractEvents({
           address,
           abi: predictionGameAbi,
           eventName: "Claimed",
-          fromBlock,
-          toBlock,
+          fromBlock: from,
+          toBlock: to,
         }),
         publicClient.getContractEvents({
           address,
           abi: predictionGameAbi,
           eventName: "ReferralRewardAccrued",
-          fromBlock,
-          toBlock,
+          fromBlock: from,
+          toBlock: to,
         }),
         publicClient.getContractEvents({
           address,
           abi: predictionGameAbi,
           eventName: "ReferralRewardClaimed",
-          fromBlock,
-          toBlock,
+          fromBlock: from,
+          toBlock: to,
         }),
-      ]);
+      ]),
+    );
+    range = usedRange;
 
     for (const log of betLogs) {
       const { user, epoch, position, amount } = log.args;

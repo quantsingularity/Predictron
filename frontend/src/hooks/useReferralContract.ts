@@ -27,7 +27,7 @@ export function useReferralContract() {
 
   const hasReferrer = Boolean(
     myReferrer.data &&
-    myReferrer.data !== "0x0000000000000000000000000000000000000000",
+      myReferrer.data !== "0x0000000000000000000000000000000000000000",
   );
 
   /// Register `referrer` on-chain, once.
